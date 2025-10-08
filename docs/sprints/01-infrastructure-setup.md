@@ -17,7 +17,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 **MÓDULO 0: Configuración Hospitalaria**
 
-- [ ] `#7` - Migración y Modelo de Áreas del Hospital
+- [x] `#7` - Migración y Modelo de Áreas del Hospital ✅ **Completada 2025-10-08**
 - [ ] `#8` - Migración y Modelo de Pisos
 - [ ] `#9` - Migración y Modelo de Cuartos
 - [ ] `#10` - Migración y Modelo de Camas
@@ -29,7 +29,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 **MÓDULO 2: Autenticación y Roles (Básico)**
 
 - [x] `#5` - Extender Tabla Users con Campo Role ✅ **Completada 2025-10-08**
-- [ ] `#6` - Crear Middleware de Autorización por Roles
+- [x] `#6` - Crear Middleware de Autorización por Roles ✅ **Completada 2025-10-08**
 - [ ] `#15` - Migración y Modelo de Enfermeros
 - [ ] `#16` - CRUD de Usuarios y Enfermeros
 - [ ] `#17` - Dashboard del Administrador
@@ -153,6 +153,91 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   10. Método `isJefe()` del enum
 - **Decisión técnica:** Se usó PHP Enum backed por string en lugar de constantes o tablas separadas para los roles, permitiendo type safety y métodos helper directamente en el enum.
 - **Notas:** Sistema de roles completo y funcional, listo para implementar middleware de autorización en Issue #6. Todos los passwords de ejemplo son `password`.
+
+### 2025-10-08: Issue #6 - Middleware de Autorización Implementado
+
+- **Issue completada:** #6 - Crear Middleware de Autorización por Roles
+- **Resultado:**
+  - ✅ Middleware `CheckRole` creado en `app/Http/Middleware/CheckRole.php`
+  - ✅ Middleware acepta múltiples roles como parámetros: `->middleware('role:admin,coordinador')`
+  - ✅ Validación de usuario autenticado (abort 401 si no autenticado)
+  - ✅ Validación de rol permitido (abort 403 si sin permisos)
+  - ✅ Conversión automática de strings a UserRole enum
+  - ✅ Middleware registrado como alias `'role'` en `bootstrap/app.php`
+  - ✅ Suite completa de 9 tests en `RoleMiddlewareTest.php`
+  - ✅ Todos los 9 tests pasando (10 assertions, 1.69s)
+  - ✅ Rutas de ejemplo creadas para testing en `routes/web.php`
+- **Archivos creados:**
+  - `app/Http/Middleware/CheckRole.php`
+  - `tests/Feature/RoleMiddlewareTest.php`
+- **Archivos modificados:**
+  - `bootstrap/app.php` (registro del middleware)
+  - `routes/web.php` (rutas de prueba)
+- **Tests implementados:**
+  1. Guest no puede acceder a ruta protegida (redirige a login)
+  2. Usuario autenticado sin rol adecuado recibe 403
+  3. Admin puede acceder a ruta de admin
+  4. Coordinador puede acceder a ruta de coordinador
+  5. Enfermero no puede acceder a ruta de coordinador
+  6. Admin puede acceder a ruta con múltiples roles
+  7. Coordinador puede acceder a ruta con múltiples roles
+  8. Jefe de Piso puede acceder a ruta con múltiples roles
+  9. Enfermero no puede acceder a ruta con múltiples roles
+- **Uso del middleware:**
+  ```php
+  // Una sola rol
+  Route::middleware(['auth', 'role:admin'])->group(function () {
+      // Rutas solo para admin
+  });
+
+  // Múltiples roles
+  Route::middleware(['auth', 'role:admin,coordinador,jefe_piso'])->group(function () {
+      // Rutas para jefes
+  });
+  ```
+- **Decisión técnica:** Se usa `abort(401)` y `abort(403)` en lugar de redirects para permitir manejo flexible de errores. Laravel automáticamente redirige a login en contexto web.
+- **Notas:** Sistema de autorización completo y funcional. Listo para proteger rutas de administración de áreas, pisos, cuartos y camas en las siguientes issues.
+
+### 2025-10-08: Issue #7 - Áreas del Hospital Implementadas
+
+- **Issue completada:** #7 - Migración y Modelo de Áreas del Hospital
+- **Resultado:**
+  - ✅ Migración `create_areas_table` con todos los campos del esquema
+  - ✅ Constraints UNIQUE en campos `nombre` y `codigo`
+  - ✅ Campos: nombre, codigo, descripcion, opera_24_7, ratio_enfermero_paciente, requiere_certificacion
+  - ✅ Modelo `Area` con fillable, casts y defaults
+  - ✅ Relaciones definidas: `pisos()` y `rotaciones()` (hasMany)
+  - ✅ Factory `AreaFactory` con 5 áreas de ejemplo
+  - ✅ Seeder `AreaSeeder` con 8 áreas reales del hospital
+  - ✅ Suite completa de 8 tests en `AreaTest.php`
+  - ✅ Todos los 8 tests pasando (21 assertions, 0.82s)
+  - ✅ Migración ejecutada exitosamente
+- **Archivos creados:**
+  - `database/migrations/2025_10_08_174625_create_areas_table.php`
+  - `app/Models/Area.php`
+  - `database/factories/AreaFactory.php`
+  - `database/seeders/AreaSeeder.php`
+  - `tests/Feature/AreaTest.php`
+- **Áreas del seeder:**
+  1. Urgencias (URG) - ratio 0.25, opera 24/7, requiere certificación
+  2. Unidad de Cuidados Intensivos (UCI) - ratio 0.50, opera 24/7, requiere certificación
+  3. Cirugía General (CIR) - ratio 0.17, opera 24/7, requiere certificación
+  4. Pediatría (PED) - ratio 0.20, opera 24/7, requiere certificación
+  5. Oncología (ONC) - ratio 0.20, no 24/7, requiere certificación
+  6. Ginecología y Obstetricia (GINO) - ratio 0.20, opera 24/7, requiere certificación
+  7. Medicina Interna (MI) - ratio 0.15, no 24/7, no requiere certificación
+  8. Hospitalización General (HOSP) - ratio 0.12, opera 24/7, no requiere certificación
+- **Tests implementados:**
+  1. Crear área con todos los campos
+  2. Validar constraint UNIQUE en nombre
+  3. Validar constraint UNIQUE en codigo
+  4. Verificar valores por defecto (opera_24_7: true, ratio: 1.00, certificacion: false)
+  5. Actualizar área
+  6. Eliminar área
+  7. Factory crea área válida
+  8. Seeder crea 8 áreas
+- **Decisión técnica:** Se usó `$attributes` en el modelo para definir defaults además de la migración, asegurando que Eloquent aplique los valores por defecto correctamente.
+- **Notas:** Tabla `areas` lista para relacionarse con `pisos` en Issue #8. Los ratios enfermero-paciente siguen estándares hospitalarios reales.
 
 ---
 
