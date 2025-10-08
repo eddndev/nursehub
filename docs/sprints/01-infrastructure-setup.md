@@ -37,8 +37,8 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 **Tareas Técnicas de Infraestructura**
 
 - [x] `#2` - Configuración de Variables de Entorno y Base de Datos ✅ **Completada 2025-10-08**
-- [ ] `#3` - Configurar Tailwind CSS v4 con Design Tokens de NurseHub
-- [ ] `#4` - Crear Layouts Base (Guest, Authenticated, Admin)
+- [x] `#3` - Configurar Tailwind CSS v4 con Design Tokens de NurseHub ✅ **Completada 2025-10-08**
+- [x] `#4` - Crear Layouts Base (Guest, Authenticated, Admin) ✅ **Completada 2025-10-08**
 - [ ] `#18` - Configurar GitHub Actions para CI
 
 ---
@@ -73,6 +73,44 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   - ✅ Conexión verificada con `php artisan tinker`
   - ✅ Comando `php artisan migrate:fresh` ejecuta sin errores
 - **Notas:** Primera tarea del sprint completada sin bloqueos. Infraestructura base lista para migraciones.
+
+### 2025-10-08: Issue #3 - Tailwind CSS v4 con Design Tokens
+
+- **Issue completada:** #3 - Configurar Tailwind CSS v4 con Design Tokens de NurseHub
+- **Resultado:**
+  - ✅ Tokens de diseño implementados en `resources/css/app.css` con `@theme`
+  - ✅ Fuentes Inter y JetBrains Mono importadas desde Google Fonts
+  - ✅ Colores TRIAGE personalizados definidos (rojo, naranja, amarillo, verde, azul)
+  - ✅ Sistema de tema oscuro implementado con localStorage
+  - ✅ Componente `<x-theme-toggle>` creado con Alpine.js
+  - ✅ JavaScript de inicialización de tema en `app.js`
+- **Archivos creados:**
+  - `resources/views/components/theme-toggle.blade.php`
+  - Modificado: `resources/css/app.css` (tokens `@theme`)
+  - Modificado: `resources/js/app.js` (funciones `initTheme()`, `applyTheme()`)
+  - Modificado: `resources/views/layouts/app.blade.php` y `guest.blade.php` (fuentes)
+- **Notas:** Sistema de diseño completamente implementado siguiendo `docs/02-design-system.md`. Modo oscuro funcional con detección de preferencias del sistema.
+
+### 2025-10-08: Issue #4 - Layouts Base Creados
+
+- **Issue completada:** #4 - Crear Layouts Base (Guest, Authenticated, Admin)
+- **Resultado:**
+  - ✅ Layout `guest.blade.php` actualizado con fuentes de NurseHub
+  - ✅ Layout `app.blade.php` actualizado con theme toggle
+  - ✅ Layout `admin.blade.php` creado con sidebar responsive completo
+  - ✅ Componente `<x-sidebar-link>` para enlaces principales del sidebar
+  - ✅ Componente `<x-sidebar-team-link>` para enlaces de áreas/equipos
+  - ✅ Componente `<x-nursehub-logo>` con logo inteligente del sistema
+  - ✅ Navegación responsive con Alpine.js (mobile + desktop)
+  - ✅ Sidebar con 7 secciones principales + 4 áreas del hospital
+- **Archivos creados:**
+  - `resources/views/layouts/admin.blade.php`
+  - `resources/views/layouts/partials/admin-sidebar.blade.php`
+  - `resources/views/components/sidebar-link.blade.php`
+  - `resources/views/components/sidebar-team-link.blade.php`
+  - `resources/views/components/nursehub-logo.blade.php`
+- **Decisión técnica:** Se usaron colores `blue` (Medical Blue) y `slate` en lugar de `indigo` y `gray` para seguir fielmente el design system de NurseHub.
+- **Notas:** Todos los layouts siguen el sistema de diseño documentado. El sidebar admin incluye navegación para: Dashboard, Enfermeros, Pacientes, Turnos, Medicamentos, Capacitaciones y Reportes.
 
 ---
 
