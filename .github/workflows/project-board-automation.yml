@@ -77,8 +77,14 @@ jobs:
 
           if [ -z "$ITEM_ID" ]; then
             echo "Issue not in project, adding it first..."
-            # ⚠️ REEMPLAZAR [OWNER] con tu username u organización
-            gh project item-add ${{ env.PROJECT_ID }} --owner eddndev --url ${{ github.event.issue.html_url }}
+            gh api graphql -f query='
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
+                  item {
+                    id
+                  }
+                }
+              }' -f projectId="${{ env.PROJECT_ID }}" -f contentId="${ISSUE_NODE_ID}"
 
             # Get the item ID again after adding
             ITEM_ID=$(gh api graphql -f query='
