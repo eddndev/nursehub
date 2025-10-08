@@ -1,8 +1,9 @@
 # Diario del Sprint 1: Infrastructure Setup
 
-**Periodo:** TBD - Se definirá al iniciar el sprint
+**Periodo:** 2025-10-07 al 2025-10-21
 **Duración:** 2 semanas
-**Épica Maestra en GitHub:** [Se creará al configurar GitHub Project]
+**Épica Maestra en GitHub:** #1
+**GitHub Project:** [NurseHub - Development Board](https://github.com/users/eddndev/projects/5)
 
 ---
 
@@ -16,36 +17,48 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 **MÓDULO 0: Configuración Hospitalaria**
 
-- [ ] `#TBD` - Como Administrador, quiero poder registrar las áreas operativas del hospital
-- [ ] `#TBD` - Como Administrador, quiero poder definir los pisos de cada área con su especialidad médica
-- [ ] `#TBD` - Como Administrador, quiero poder crear cuartos y camas con identificadores únicos
-- [ ] `#TBD` - Como Administrador, quiero poder actualizar el estado de las camas
-- [ ] `#TBD` - Como Administrador, quiero poder visualizar un mapa del hospital por pisos
-- [ ] `#TBD` - Como Administrador, quiero poder definir el ratio enfermero-paciente por área
-- [ ] `#TBD` - Como Coordinador, quiero poder consultar la disponibilidad de camas en tiempo real
+- [ ] `#7` - Migración y Modelo de Áreas del Hospital
+- [ ] `#8` - Migración y Modelo de Pisos
+- [ ] `#9` - Migración y Modelo de Cuartos
+- [ ] `#10` - Migración y Modelo de Camas
+- [ ] `#11` - CRUD de Áreas con Livewire
+- [ ] `#12` - CRUD de Pisos con Livewire
+- [ ] `#13` - CRUD de Cuartos y Camas con Livewire
+- [ ] `#14` - Mapa Visual del Hospital
 
 **MÓDULO 2: Autenticación y Roles (Básico)**
 
-- [ ] `#TBD` - Como Administrador, quiero poder registrar usuarios con roles específicos
-- [ ] `#TBD` - Como Administrador, quiero poder crear perfiles de enfermeros
-- [ ] `#TBD` - Como Administrador, quiero poder definir si un enfermero es fijo o rotativo
-- [ ] `#TBD` - Como Administrador, quiero poder desactivar usuarios sin eliminarlos
+- [ ] `#5` - Extender Tabla Users con Campo Role
+- [ ] `#6` - Crear Middleware de Autorización por Roles
+- [ ] `#15` - Migración y Modelo de Enfermeros
+- [ ] `#16` - CRUD de Usuarios y Enfermeros
+- [ ] `#17` - Dashboard del Administrador
 
 **Tareas Técnicas de Infraestructura**
 
-- [ ] `#TBD` - Configurar variables de entorno (.env) con configuración completa
-- [ ] `#TBD` - Configurar base de datos MySQL y conexión
-- [ ] `#TBD` - Configurar Tailwind CSS v4 con tokens de diseño de NurseHub
-- [ ] `#TBD` - Implementar modo oscuro con localStorage
-- [ ] `#TBD` - Configurar fuentes (Inter, JetBrains Mono) desde Google Fonts
-- [ ] `#TBD` - Crear layouts base (guest, authenticated, admin)
-- [ ] `#TBD` - Configurar GitHub Actions para CI/CD básico
+- [ ] `#2` - Configuración de Variables de Entorno y Base de Datos
+- [ ] `#3` - Configurar Tailwind CSS v4 con Design Tokens de NurseHub
+- [ ] `#4` - Crear Layouts Base (Guest, Authenticated, Admin)
+- [ ] `#18` - Configurar GitHub Actions para CI
 
 ---
 
 ## 3. Registro de Decisiones Técnicas
 
-*Esta sección se actualizará durante el sprint a medida que se tomen decisiones.*
+### 2025-10-07: Configuración de GitHub Project
+
+- **Decisión:** Usar GraphQL API en lugar de `gh project item-add` para agregar issues al proyecto
+- **Razón:** El PROJECT_ID de NurseHub termina con guión bajo (`PVT_kwHOCUkKF84BFAj_`) lo cual causa conflictos con el CLI de GitHub
+- **Solución:** Implementar mutation `addProjectV2ItemById` directamente en el workflow
+- **Archivo afectado:** `.github/workflows/project-board-automation.yml`
+
+### 2025-10-07: Creación de Labels del Proyecto
+
+- **Labels creados:**
+  - `Epic`, `Sprint: 1`
+  - `Priority: Critical`, `Priority: High`, `Priority: Medium`, `Priority: Low`
+  - `Type: Feature`, `Type: Chore`
+  - `Module: Core`, `Module: Database`, `Module: Auth`, `Module: UI/UX`
 
 ---
 
