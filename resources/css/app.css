@@ -5,9 +5,39 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme {
-  --font-sans:
-    Figtree, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  /* ========================================
+     NurseHub Design System - Tokens
+     Versión: 1.0
+     Fuente: docs/02-design-system.md
+     ======================================== */
+
+  /* Tipografía */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Colores TRIAGE (específicos del sistema médico) */
+  --color-triage-red: #dc2626;       /* Crítico - Riesgo vital inmediato */
+  --color-triage-orange: #ea580c;    /* Urgente - Urgencia alta */
+  --color-triage-yellow: #f59e0b;    /* Moderado - Atención prioritaria */
+  --color-triage-green: #10b981;     /* Menor - Baja prioridad */
+  --color-triage-blue: #3b82f6;      /* Consulta - Sin urgencia */
+
+  /* Bordes */
+  --radius-base: 6px;
+
+  /* Sombras personalizadas */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+
+  /*
+     Nota: Los colores principales (blue, cyan, slate) y semánticos
+     (success, danger, warning, info) ya están disponibles nativamente
+     en Tailwind CSS v4, por lo que no es necesario redefinirlos aquí.
+
+     Paleta principal: blue-* (Medical Blue)
+     Paleta de acento: cyan-* (Vital Cyan)
+     Paleta neutral: slate-*
+     Semánticos: green-* (success), red-* (danger), yellow-* (warning)
+  */
 }
 
 /*
