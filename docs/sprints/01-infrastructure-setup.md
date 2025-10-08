@@ -28,7 +28,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 **MÓDULO 2: Autenticación y Roles (Básico)**
 
-- [ ] `#5` - Extender Tabla Users con Campo Role
+- [x] `#5` - Extender Tabla Users con Campo Role ✅ **Completada 2025-10-08**
 - [ ] `#6` - Crear Middleware de Autorización por Roles
 - [ ] `#15` - Migración y Modelo de Enfermeros
 - [ ] `#16` - CRUD de Usuarios y Enfermeros
@@ -111,6 +111,48 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   - `resources/views/components/nursehub-logo.blade.php`
 - **Decisión técnica:** Se usaron colores `blue` (Medical Blue) y `slate` en lugar de `indigo` y `gray` para seguir fielmente el design system de NurseHub.
 - **Notas:** Todos los layouts siguen el sistema de diseño documentado. El sidebar admin incluye navegación para: Dashboard, Enfermeros, Pacientes, Turnos, Medicamentos, Capacitaciones y Reportes.
+
+### 2025-10-08: Issue #5 - Sistema de Roles Implementado
+
+- **Issue completada:** #5 - Extender Tabla Users con Campo Role
+- **Resultado:**
+  - ✅ Migración `create_users_table.php` extendida con campo `role` (ENUM) e `is_active` (BOOLEAN)
+  - ✅ Enum `UserRole` creado con 5 roles: ADMIN, COORDINADOR, JEFE_PISO, ENFERMERO, JEFE_CAPACITACION
+  - ✅ Métodos helper en enum: `label()`, `isAdmin()`, `isCoordinadorOrAbove()`, `isJefe()`, `toArray()`
+  - ✅ Modelo `User` actualizado con casts y scopes: `active()`, `byRole()`
+  - ✅ Métodos helper en modelo: `isAdmin()`, `isCoordinadorOrAbove()`
+  - ✅ DatabaseSeeder actualizado con 5 usuarios de ejemplo (uno por rol)
+  - ✅ UserFactory actualizado con defaults (`role => ENFERMERO`, `is_active => true`)
+  - ✅ Suite completa de 14 tests implementada en `UserRoleTest.php`
+  - ✅ Migración ejecutada exitosamente con `php artisan migrate:fresh --seed`
+  - ✅ Todos los 14 tests pasando (37 assertions, 1.73s)
+- **Archivos modificados:**
+  - `database/migrations/0001_01_01_000000_create_users_table.php`
+  - `app/Models/User.php`
+  - `database/seeders/DatabaseSeeder.php`
+  - `database/factories/UserFactory.php`
+- **Archivos creados:**
+  - `app/Enums/UserRole.php`
+  - `tests/Feature/UserRoleTest.php`
+- **Usuarios seeder creados:**
+  - `admin@nursehub.com` (Administrador) - rol: ADMIN
+  - `coordinador@nursehub.com` (La Planchada) - rol: COORDINADOR
+  - `jefe.pediatria@nursehub.com` (Lula Enfermera) - rol: JEFE_PISO
+  - `capacitacion@nursehub.com` (Patch Addams) - rol: JEFE_CAPACITACION
+  - `enfermero@nursehub.com` (Buen Samaritano) - rol: ENFERMERO
+- **Tests implementados:**
+  1. Crear usuarios con cada rol (ADMIN, COORDINADOR, JEFE_PISO, ENFERMERO, JEFE_CAPACITACION)
+  2. Verificar rol default (ENFERMERO)
+  3. Verificar is_active default (true)
+  4. Crear usuario inactivo
+  5. Scope `active()` filtra solo usuarios activos
+  6. Scope `byRole()` filtra por rol específico
+  7. Labels correctos del enum
+  8. Método `isAdmin()` del enum
+  9. Método `isCoordinadorOrAbove()` del enum
+  10. Método `isJefe()` del enum
+- **Decisión técnica:** Se usó PHP Enum backed por string en lugar de constantes o tablas separadas para los roles, permitiendo type safety y métodos helper directamente en el enum.
+- **Notas:** Sistema de roles completo y funcional, listo para implementar middleware de autorización en Issue #6. Todos los passwords de ejemplo son `password`.
 
 ---
 
