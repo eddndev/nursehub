@@ -18,7 +18,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 **MÓDULO 0: Configuración Hospitalaria**
 
 - [x] `#7` - Migración y Modelo de Áreas del Hospital ✅ **Completada 2025-10-08**
-- [ ] `#8` - Migración y Modelo de Pisos
+- [x] `#8` - Migración y Modelo de Pisos ✅ **Completada 2025-10-08**
 - [ ] `#9` - Migración y Modelo de Cuartos
 - [ ] `#10` - Migración y Modelo de Camas
 - [ ] `#11` - CRUD de Áreas con Livewire
@@ -238,6 +238,49 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   8. Seeder crea 8 áreas
 - **Decisión técnica:** Se usó `$attributes` en el modelo para definir defaults además de la migración, asegurando que Eloquent aplique los valores por defecto correctamente.
 - **Notas:** Tabla `areas` lista para relacionarse con `pisos` en Issue #8. Los ratios enfermero-paciente siguen estándares hospitalarios reales.
+
+### 2025-10-08: Issue #8 - Pisos del Hospital Implementados
+
+- **Issue completada:** #8 - Migración y Modelo de Pisos
+- **Resultado:**
+  - ✅ Migración `create_pisos_table` con FK a `areas` y onDelete cascade
+  - ✅ Campos: area_id (FK), nombre, numero_piso, especialidad
+  - ✅ Índice en `area_id` para optimizar queries
+  - ✅ Modelo `Piso` con fillable y casts
+  - ✅ Relación `belongsTo(Area::class)` implementada
+  - ✅ Relación `hasMany(Cuarto::class)` definida
+  - ✅ Factory `PisoFactory` con especialidades de ejemplo
+  - ✅ Seeder `PisoSeeder` con 12 pisos distribuidos en 8 áreas
+  - ✅ Suite completa de 9 tests en `PisoTest.php`
+  - ✅ Todos los 9 tests pasando (18 assertions, 0.93s)
+  - ✅ Migración ejecutada exitosamente
+- **Archivos creados:**
+  - `database/migrations/2025_10_08_180952_create_pisos_table.php`
+  - `app/Models/Piso.php`
+  - `database/factories/PisoFactory.php`
+  - `database/seeders/PisoSeeder.php`
+  - `tests/Feature/PisoTest.php`
+- **Distribución de pisos del seeder:**
+  - **Urgencias (Planta Baja - Piso 0):** Traumatología y Emergencias
+  - **Ginecología (Piso 2):** 2 pisos - Ginecología y Maternidad
+  - **Cirugía (Pisos 3-4):** Quirófanos y Recuperación Post-Quirúrgica
+  - **UCI (Piso 5):** Cuidados Intensivos
+  - **Pediatría (Piso 6):** 2 pisos - Pediatría General y Neonatología
+  - **Oncología (Piso 7):** Oncología Médica
+  - **Medicina Interna (Piso 8):** Medicina Interna
+  - **Hospitalización General (Pisos 9-10):** 2 pisos de hospitalización
+- **Tests implementados:**
+  1. Crear piso con área asociada
+  2. Relación belongsTo con Area
+  3. Relación hasMany desde Area
+  4. Validar FK requerida (area_id)
+  5. Actualizar piso
+  6. Eliminar piso
+  7. Cascade delete cuando se elimina área
+  8. Factory crea piso válido
+  9. Seeder crea 12 pisos
+- **Decisión técnica:** Se usó `onDelete('cascade')` en la FK para asegurar integridad referencial. Al eliminar un área, sus pisos se eliminan automáticamente.
+- **Notas:** Tabla `pisos` lista para relacionarse con `cuartos` en Issue #9. La distribución de pisos refleja una estructura hospitalaria realista con 10 niveles.
 
 ---
 
