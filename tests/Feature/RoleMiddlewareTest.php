@@ -15,7 +15,8 @@ class RoleMiddlewareTest extends TestCase
     {
         $response = $this->get('/admin/test');
 
-        $response->assertStatus(401);
+        // Laravel redirige a login para usuarios no autenticados
+        $response->assertRedirect('/login');
     }
 
     public function test_authenticated_user_without_role_cannot_access_admin_route()
