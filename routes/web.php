@@ -30,5 +30,10 @@ Route::middleware(['auth', 'role:admin,coordinador,jefe_piso'])->group(function 
     Route::get('/jefes/test', fn() => response('Jefes access granted'));
 });
 
+// Rutas de administración - Solo admins
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/areas', \App\Livewire\Admin\AreaManager::class)->name('admin.areas');
+});
+
 require __DIR__.'/socialite.php';
 require __DIR__.'/auth.php';

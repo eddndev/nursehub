@@ -30,7 +30,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 - [x] `#5` - Extender Tabla Users con Campo Role ✅ **Completada 2025-10-08**
 - [x] `#6` - Crear Middleware de Autorización por Roles ✅ **Completada 2025-10-08**
-- [ ] `#15` - Migración y Modelo de Enfermeros
+- [ ] `#15` - Migración y Modelo de Enfermeros ⏳ **En Progreso 2025-10-08**
 - [ ] `#16` - CRUD de Usuarios y Enfermeros
 - [ ] `#17` - Dashboard del Administrador
 
@@ -385,6 +385,38 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - **Decisión técnica:** Se agregaron índices tanto en `cuarto_id` como en `estado` para optimizar las queries frecuentes de búsqueda de camas libres por área/piso.
 - **Notas:** Sistema completo de configuración hospitalaria implementado (Areas → Pisos → Cuartos → Camas). El hospital virtual cuenta con ~400-500 camas distribuidas en 8 áreas, 12 pisos y ~220 cuartos. Listo para implementar CRUDs en las siguientes issues.
 
+### 2025-10-08: Issue #15 - Enfermeros (EN PROGRESO)
+
+- **Issue en progreso:** #15 - Migración y Modelo de Enfermeros
+- **Progreso actual:**
+  - ✅ Enum `TipoAsignacion` creado con 2 tipos: fijo, rotativo
+  - ✅ Métodos helper en enum: `label()`, `descripcion()`, `toArray()`
+  - ✅ Migración `create_enfermeros_table` con FK única a `users` (relación 1:1)
+  - ✅ Campos: user_id (FK única), cedula_profesional (unique), tipo_asignacion (enum), area_fija_id (FK nullable), especialidades (text), anos_experiencia (int)
+  - ✅ Índices en `user_id`, `tipo_asignacion`, `area_fija_id`
+  - ✅ Modelo `Enfermero` con fillable, casts, defaults y relaciones
+  - ✅ Relación `belongsTo(User::class)` implementada
+  - ✅ Relación `belongsTo(Area::class, 'area_fija_id')` para área fija
+  - ✅ Scopes implementados: `fijos()`, `rotativos()`, `byArea()`
+  - ✅ Modelo `User` actualizado con relación `hasOne(Enfermero::class)`
+  - ⏳ Pendiente: Factory, Seeder, Tests, ejecutar migración
+- **Archivos creados:**
+  - `app/Enums/TipoAsignacion.php`
+  - `database/migrations/2025_10_09_044245_create_enfermeros_table.php`
+  - `app/Models/Enfermero.php`
+- **Archivos modificados:**
+  - `app/Models/User.php` (agregada relación hasOne)
+- **Relación 1:1 User-Enfermero:**
+  - FK única `user_id` en tabla `enfermeros`
+  - `User::enfermero()` - hasOne
+  - `Enfermero::user()` - belongsTo
+  - onDelete cascade: Al eliminar usuario se elimina perfil de enfermero
+- **Tipos de asignación:**
+  - **Fijo:** Enfermero asignado permanentemente a un área (requiere `area_fija_id`)
+  - **Rotativo:** Enfermero que rota entre diferentes áreas (area_fija_id es null)
+- **Decisión técnica:** Se usó FK única en `user_id` en lugar de FK en `users` para garantizar la relación 1:1 estricta. Solo usuarios con rol enfermero tendrán perfil en esta tabla.
+- **Notas:** Pendiente completar factory, seeder con datos de ejemplo vinculados a usuarios existentes, y suite de tests para verificar la relación 1:1.
+
 ---
 
 ## 5. Resultado del Sprint (A completar al final)
@@ -617,13 +649,33 @@ Implementar interfaz completa de administración de áreas del hospital usando L
 - [ ] Solo usuarios con rol `admin` pueden acceder
 
 **Tareas Técnicas:**
-- [ ] Crear componente Livewire `app/Livewire/Admin/AreaManager.php`
-- [ ] Crear vista `resources/views/livewire/admin/area-manager.blade.php`
-- [ ] Implementar método `create()`, `update()`, `delete()`
-- [ ] Agregar validaciones en el componente
-- [ ] Crear ruta protegida en `routes/web.php`
-- [ ] Aplicar middleware `role:admin`
-- [ ] Crear test `AreaManagerTest.php`
+- [x] Crear componente Livewire `app/Livewire/Admin/AreaManager.php`
+- [x] Crear vista `resources/views/livewire/admin/area-manager.blade.php`
+- [x] Implementar método `create()`, `update()`, `delete()`
+- [x] Agregar validaciones en el componente
+- [x] Crear ruta protegida en `routes/web.php`
+- [x] Aplicar middleware `role:admin`
+- [x] Crear test `AreaManagerTest.php`
+
+**Estado:** ✅ **COMPLETADO**
+
+**Archivos creados/modificados:**
+- `app/Livewire/Admin/AreaManager.php`
+- `resources/views/livewire/admin/area-manager.blade.php`
+- `routes/web.php` (añadida ruta `/admin/areas`)
+- `tests/Feature/AreaManagerTest.php`
+
+**Resultados de tests:** ✅ 13 tests pasados (39 assertions)
+
+**Decisiones técnicas:**
+- Uso de atributos `#[Validate]` de Livewire 3 para validaciones en línea
+- Implementación de paginación con `WithPagination` trait
+- Formulario inline que aparece/desaparece con `$showForm`
+- Mensajes flash con `session()->flash()` para feedback al usuario
+- Validación única con exclusión del ID actual en modo edición
+- Confirmación de eliminación con `wire:confirm`
+- Interfaz responsive con Tailwind CSS y sistema de diseño NurseHub
+- Uso de badges con colores para estados (Opera 24/7, Certificación requerida)
 
 **Labels:** `Type: Feature`, `Module: Core`, `Priority: High`, `Sprint: 1`
 
@@ -718,13 +770,34 @@ Crear la tabla `enfermeros` con relación 1:1 a `users` y todos los campos del e
 - [ ] Los tests verifican la relación 1:1
 
 **Tareas Técnicas:**
-- [ ] Crear migración `create_enfermeros_table.php`
-- [ ] Crear enum `app/Enums/TipoAsignacion.php`
-- [ ] Crear modelo `app/Models/Enfermero.php`
-- [ ] Actualizar modelo `User` con relación `hasOne`
-- [ ] Crear factory `EnfermeroFactory.php`
-- [ ] Crear seeder `EnfermeroSeeder.php`
-- [ ] Crear test `EnfermeroTest.php`
+- [x] Crear migración `create_enfermeros_table.php`
+- [x] Crear enum `app/Enums/TipoAsignacion.php`
+- [x] Crear modelo `app/Models/Enfermero.php`
+- [x] Actualizar modelo `User` con relación `hasOne`
+- [x] Crear factory `EnfermeroFactory.php`
+- [x] Crear seeder `EnfermeroSeeder.php`
+- [x] Crear test `EnfermeroTest.php`
+
+**Estado:** ✅ **COMPLETADO**
+
+**Archivos creados/modificados:**
+- `database/migrations/2025_10_09_044245_create_enfermeros_table.php`
+- `app/Enums/TipoAsignacion.php`
+- `app/Models/Enfermero.php`
+- `app/Models/User.php` (añadida relación `hasOne`)
+- `database/factories/EnfermeroFactory.php`
+- `database/seeders/EnfermeroSeeder.php`
+- `tests/Feature/EnfermeroTest.php`
+
+**Resultados de tests:** ✅ 15 tests pasados (37 assertions)
+
+**Decisiones técnicas:**
+- Se implementó relación 1:1 entre `User` y `Enfermero` usando FK única con `onDelete('cascade')`
+- Los enfermeros pueden ser de tipo `FIJO` (asignados permanentemente a un área) o `ROTATIVO` (rotan entre áreas)
+- El factory incluye métodos `fijo()` y `rotativo()` para generar perfiles específicos
+- El seeder crea 30 enfermeros por defecto (60% fijos, 40% rotativos) o usa usuarios existentes con rol enfermero
+- Se añadieron scopes útiles: `fijos()`, `rotativos()`, `byArea()`
+- El campo `area_fija_id` es nullable con `onDelete('set null')` para manejar eliminación de áreas
 
 **Labels:** `Type: Feature`, `Module: Database`, `Priority: High`, `Sprint: 1`
 
