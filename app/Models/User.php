@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -81,5 +82,13 @@ class User extends Authenticatable
     public function isCoordinadorOrAbove(): bool
     {
         return $this->role->isCoordinadorOrAbove();
+    }
+
+    /**
+     * Relación: Un usuario tiene un perfil de enfermero (1:1)
+     */
+    public function enfermero(): HasOne
+    {
+        return $this->hasOne(Enfermero::class);
     }
 }
