@@ -34,6 +34,8 @@ Route::middleware(['auth', 'role:admin,coordinador,jefe_piso'])->group(function 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/areas', \App\Livewire\Admin\AreaManager::class)->name('admin.areas');
     Route::get('/pisos', \App\Livewire\Admin\PisoManager::class)->name('admin.pisos');
+    Route::get('/cuartos', \App\Livewire\Admin\CuartoManager::class)->name('admin.cuartos');
+    Route::get('/camas', \App\Livewire\Admin\CamaManager::class)->name('admin.camas');
 });
 
 require __DIR__.'/socialite.php';
