@@ -19,8 +19,8 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 - [x] `#7` - Migración y Modelo de Áreas del Hospital ✅ **Completada 2025-10-08**
 - [x] `#8` - Migración y Modelo de Pisos ✅ **Completada 2025-10-08**
-- [ ] `#9` - Migración y Modelo de Cuartos
-- [ ] `#10` - Migración y Modelo de Camas
+- [x] `#9` - Migración y Modelo de Cuartos ✅ **Completada 2025-10-08**
+- [x] `#10` - Migración y Modelo de Camas ✅ **Completada 2025-10-08**
 - [ ] `#11` - CRUD de Áreas con Livewire
 - [ ] `#12` - CRUD de Pisos con Livewire
 - [ ] `#13` - CRUD de Cuartos y Camas con Livewire
@@ -281,6 +281,109 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   9. Seeder crea 12 pisos
 - **Decisión técnica:** Se usó `onDelete('cascade')` en la FK para asegurar integridad referencial. Al eliminar un área, sus pisos se eliminan automáticamente.
 - **Notas:** Tabla `pisos` lista para relacionarse con `cuartos` en Issue #9. La distribución de pisos refleja una estructura hospitalaria realista con 10 niveles.
+
+### 2025-10-08: Issue #9 - Cuartos del Hospital Implementados
+
+- **Issue completada:** #9 - Migración y Modelo de Cuartos
+- **Resultado:**
+  - ✅ Migración `create_cuartos_table` con FK a `pisos` y onDelete cascade
+  - ✅ Campos: piso_id (FK), numero_cuarto, tipo (enum)
+  - ✅ ENUM con valores: individual, doble, multiple
+  - ✅ Índice en `piso_id` para optimizar queries
+  - ✅ Modelo `Cuarto` con fillable, casts y defaults
+  - ✅ Relación `belongsTo(Piso::class)` implementada
+  - ✅ Relación `hasMany(Cama::class)` definida
+  - ✅ Factory `CuartoFactory` con tipos aleatorios
+  - ✅ Seeder `CuartoSeeder` con lógica inteligente por tipo de piso
+  - ✅ Suite completa de 11 tests en `CuartoTest.php`
+  - ✅ Todos los 11 tests pasando (20 assertions, 1.39s)
+  - ✅ Migración ejecutada exitosamente
+- **Archivos creados:**
+  - `database/migrations/2025_10_08_184120_create_cuartos_table.php`
+  - `app/Models/Cuarto.php`
+  - `database/factories/CuartoFactory.php`
+  - `database/seeders/CuartoSeeder.php`
+  - `tests/Feature/CuartoTest.php`
+- **Distribución inteligente de cuartos (seeder):**
+  - **UCI:** 8 cuartos individuales (100%)
+  - **Urgencias:** 12 cuartos mixtos
+  - **Quirófanos:** 6 cuartos individuales (100%)
+  - **Recuperación Post-Quirúrgica:** 10 cuartos (80% individual, 20% doble)
+  - **Pediatría General:** 15 cuartos (40% individual, 40% doble, 20% múltiple)
+  - **Neonatología:** 12 cuartos (60% individual, 40% múltiple)
+  - **Oncología:** 20 cuartos (50% individual, 50% doble)
+  - **Ginecología:** 18 cuartos mixtos
+  - **Maternidad:** 16 cuartos individuales (100%)
+  - **Medicina Interna:** 25 cuartos mixtos
+  - **Hospitalización General:** 30 cuartos por piso (2 pisos = 60 cuartos)
+  - **Total aproximado:** ~220 cuartos en el hospital
+- **Tests implementados:**
+  1. Crear cuarto con piso asociado
+  2. Relación belongsTo con Piso
+  3. Relación hasMany desde Piso
+  4. Validar FK requerida (piso_id)
+  5. Verificar default tipo (individual)
+  6. Validar tipos permitidos (individual, doble, multiple)
+  7. Actualizar cuarto
+  8. Eliminar cuarto
+  9. Cascade delete cuando se elimina piso
+  10. Factory crea cuarto válido
+  11. Seeder crea cuartos para todos los pisos
+- **Decisión técnica:** El seeder usa lógica `match()` para asignar cantidades y distribuciones específicas según el tipo de piso, reflejando necesidades reales de cada área médica.
+- **Notas:** Tabla `cuartos` lista para relacionarse con `camas` en Issue #10. La numeración de cuartos sigue el patrón: número de piso × 100 + secuencial (ej: Piso 3 = cuartos 301-330).
+
+### 2025-10-08: Issue #10 - Camas del Hospital Implementadas
+
+- **Issue completada:** #10 - Migración y Modelo de Camas
+- **Resultado:**
+  - ✅ Enum `CamaEstado` con 4 estados: libre, ocupada, en_limpieza, en_mantenimiento
+  - ✅ Métodos helper en enum: `label()`, `color()`, `isDisponible()`, `toArray()`
+  - ✅ Migración `create_camas_table` con FK a `cuartos` y onDelete cascade
+  - ✅ Campos: cuarto_id (FK), numero_cama, estado (enum)
+  - ✅ Índices en `cuarto_id` y `estado` para optimizar queries
+  - ✅ Modelo `Cama` con fillable, casts y defaults
+  - ✅ Relación `belongsTo(Cuarto::class)` implementada
+  - ✅ Scopes implementados: `libre()`, `ocupada()`, `byEstado()`
+  - ✅ Factory `CamaFactory` con estados aleatorios y métodos `libre()`, `ocupada()`
+  - ✅ Seeder `CamaSeeder` con distribución realista de estados
+  - ✅ Suite completa de 15 tests en `CamaTest.php`
+  - ✅ Todos los 15 tests pasando (34 assertions, 1.77s)
+  - ✅ Migración ejecutada exitosamente
+- **Archivos creados:**
+  - `app/Enums/CamaEstado.php`
+  - `database/migrations/2025_10_08_192617_create_camas_table.php`
+  - `app/Models/Cama.php`
+  - `database/factories/CamaFactory.php`
+  - `database/seeders/CamaSeeder.php`
+  - `tests/Feature/CamaTest.php`
+- **Distribución de estados del seeder:**
+  - **60% Libres** (verde) - Disponibles para asignación
+  - **30% Ocupadas** (rojo) - Con paciente asignado
+  - **7% En Limpieza** (amarillo) - En proceso de sanitización
+  - **3% En Mantenimiento** (gris) - Fuera de servicio
+- **Cantidad de camas según tipo de cuarto:**
+  - **Individual:** 1 cama
+  - **Doble:** 2 camas
+  - **Múltiple:** 4-6 camas (aleatorio)
+  - **Total aproximado:** ~400-500 camas en todo el hospital
+- **Tests implementados:**
+  1. Crear cama con cuarto asociado
+  2. Relación belongsTo con Cuarto
+  3. Relación hasMany desde Cuarto
+  4. Validar FK requerida (cuarto_id)
+  5. Verificar default estado (libre)
+  6. Validar todos los estados permitidos
+  7. Cambiar estado de cama
+  8. Scope libre filtra correctamente
+  9. Scope ocupada filtra correctamente
+  10. Cascade delete cuando se elimina cuarto
+  11. Factory crea cama válida
+  12. Seeder crea camas para todos los cuartos
+  13. Enum tiene labels correctos
+  14. Enum tiene colores correctos
+  15. Método isDisponible() funciona correctamente
+- **Decisión técnica:** Se agregaron índices tanto en `cuarto_id` como en `estado` para optimizar las queries frecuentes de búsqueda de camas libres por área/piso.
+- **Notas:** Sistema completo de configuración hospitalaria implementado (Areas → Pisos → Cuartos → Camas). El hospital virtual cuenta con ~400-500 camas distribuidas en 8 áreas, 12 pisos y ~220 cuartos. Listo para implementar CRUDs en las siguientes issues.
 
 ---
 
