@@ -33,6 +33,7 @@ Route::middleware(['auth', 'role:admin,coordinador,jefe_piso'])->group(function 
 // Rutas de administración - Solo admins
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/areas', \App\Livewire\Admin\AreaManager::class)->name('admin.areas');
+    Route::get('/pisos', \App\Livewire\Admin\PisoManager::class)->name('admin.pisos');
 });
 
 require __DIR__.'/socialite.php';

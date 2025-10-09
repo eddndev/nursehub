@@ -21,8 +21,8 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - [x] `#8` - Migración y Modelo de Pisos ✅ **Completada 2025-10-08**
 - [x] `#9` - Migración y Modelo de Cuartos ✅ **Completada 2025-10-08**
 - [x] `#10` - Migración y Modelo de Camas ✅ **Completada 2025-10-08**
-- [ ] `#11` - CRUD de Áreas con Livewire
-- [ ] `#12` - CRUD de Pisos con Livewire
+- [x] `#11` - CRUD de Áreas con Livewire ✅ **Completada 2025-10-09**
+- [x] `#12` - CRUD de Pisos con Livewire ✅ **Completada 2025-10-09**
 - [ ] `#13` - CRUD de Cuartos y Camas con Livewire
 - [ ] `#14` - Mapa Visual del Hospital
 
@@ -30,7 +30,7 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 - [x] `#5` - Extender Tabla Users con Campo Role ✅ **Completada 2025-10-08**
 - [x] `#6` - Crear Middleware de Autorización por Roles ✅ **Completada 2025-10-08**
-- [ ] `#15` - Migración y Modelo de Enfermeros ⏳ **En Progreso 2025-10-08**
+- [x] `#15` - Migración y Modelo de Enfermeros ✅ **Completada 2025-10-09**
 - [ ] `#16` - CRUD de Usuarios y Enfermeros
 - [ ] `#17` - Dashboard del Administrador
 
@@ -385,10 +385,107 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - **Decisión técnica:** Se agregaron índices tanto en `cuarto_id` como en `estado` para optimizar las queries frecuentes de búsqueda de camas libres por área/piso.
 - **Notas:** Sistema completo de configuración hospitalaria implementado (Areas → Pisos → Cuartos → Camas). El hospital virtual cuenta con ~400-500 camas distribuidas en 8 áreas, 12 pisos y ~220 cuartos. Listo para implementar CRUDs en las siguientes issues.
 
-### 2025-10-08: Issue #15 - Enfermeros (EN PROGRESO)
+### 2025-10-09: Issue #11 - CRUD de Áreas con Livewire Implementado
 
-- **Issue en progreso:** #15 - Migración y Modelo de Enfermeros
-- **Progreso actual:**
+- **Issue completada:** #11 - CRUD de Áreas con Livewire
+- **Resultado:**
+  - ✅ Componente Livewire `AreaManager` con CRUD completo
+  - ✅ Vista Blade responsiva con tabla, formulario inline y paginación
+  - ✅ Ruta protegida `/admin/areas` con middleware `role:admin`
+  - ✅ Validaciones con #[Validate] attributes en Livewire 3
+  - ✅ Suite completa de 13 tests en `AreaManagerTest.php`
+  - ✅ Todos los 13 tests pasando (39 assertions, 1.34s)
+- **Archivos creados:**
+  - `app/Livewire/Admin/AreaManager.php`
+  - `resources/views/livewire/admin/area-manager.blade.php`
+  - `tests/Feature/AreaManagerTest.php`
+- **Archivos modificados:**
+  - `routes/web.php` (agregada ruta admin.areas)
+- **Funcionalidades implementadas:**
+  - Crear área con validación de campos únicos (nombre, código)
+  - Editar área con validación que excluye el registro actual
+  - Eliminar área con confirmación wire:confirm
+  - Listar áreas con paginación (10 por página)
+  - Formulario inline que se muestra/oculta con $showForm
+  - Validación de ratio_enfermero_paciente (0.01 - 99.99)
+  - Badges con colores para estados booleanos (opera_24_7, requiere_certificacion)
+  - Soporte completo para dark mode
+- **Tests implementados:**
+  1. Admin puede acceder a la página
+  2. No-admin recibe 403
+  3. Guest redirige a login
+  4. Componente se renderiza correctamente
+  5. Lista de áreas se muestra
+  6. Crear área
+  7. Validar campos requeridos
+  8. Validar nombre único
+  9. Validar código único
+  10. Editar área
+  11. Eliminar área
+  12. Cancelar formulario
+  13. Validar rango de ratio
+- **Decisiones técnicas:**
+  - Uso de #[Validate] attributes de Livewire 3 en lugar de método rules()
+  - WithPagination trait para manejar paginación automática
+  - Patrón inline form con toggle $showForm para mejor UX
+  - session()->flash() para mensajes de éxito
+  - Validación unique con exclusión de ID en modo edición
+  - wire:confirm para confirmación de eliminación sin JavaScript adicional
+  - Badge system con Tailwind para visualizar estados booleanos
+- **Notas:** Primera implementación de CRUD con Livewire en el proyecto. Establece el patrón a seguir para los demás CRUDs (Pisos, Cuartos, Camas).
+
+### 2025-10-09: Issue #12 - CRUD de Pisos con Livewire Implementado
+
+- **Issue completada:** #12 - CRUD de Pisos con Livewire
+- **Resultado:**
+  - ✅ Componente Livewire `PisoManager` con CRUD completo
+  - ✅ Vista Blade responsiva con select dropdown para áreas
+  - ✅ Ruta protegida `/admin/pisos` con middleware `role:admin`
+  - ✅ Eager loading de relación `area` para optimizar queries
+  - ✅ Suite completa de 14 tests en `PisoManagerTest.php`
+  - ✅ Todos los 14 tests pasando (42 assertions, 1.36s)
+- **Archivos creados:**
+  - `app/Livewire/Admin/PisoManager.php`
+  - `resources/views/livewire/admin/piso-manager.blade.php`
+  - `tests/Feature/PisoManagerTest.php`
+- **Archivos modificados:**
+  - `routes/web.php` (agregada ruta admin.pisos)
+- **Funcionalidades implementadas:**
+  - Crear piso con selección de área mediante dropdown
+  - Editar piso con validación de FK area_id
+  - Eliminar piso con confirmación
+  - Listar pisos con eager loading de área (10 por página)
+  - Validación exists:areas,id para area_id
+  - Validación de numero_piso (1-50)
+  - Badges diferenciados: azul para número de piso, medical para área
+  - Especialidad opcional por piso
+- **Tests implementados:**
+  1. Admin puede acceder a la página
+  2. No-admin recibe 403
+  3. Guest redirige a login
+  4. Componente se renderiza correctamente
+  5. Lista de pisos se muestra
+  6. Crear piso
+  7. Validar campos requeridos
+  8. Validar que área exista
+  9. Validar rango de numero_piso (1-50)
+  10. Editar piso
+  11. Eliminar piso
+  12. Cancelar formulario
+  13. Áreas se cargan en dropdown
+  14. Piso se muestra con relación de área
+- **Decisiones técnicas:**
+  - Select dropdown poblado con $areas ordenadas alfabéticamente
+  - Eager loading `Piso::with('area')->paginate(10)` para evitar N+1
+  - Validación exists para garantizar integridad referencial
+  - Badge con color azul para numero_piso vs medical para área
+  - Campo especialidad nullable para flexibilidad por piso
+- **Notas:** Segundo CRUD implementado siguiendo el patrón de AreaManager. Demuestra manejo de relaciones belongsTo en Livewire con select dropdowns.
+
+### 2025-10-09: Issue #15 - Enfermeros Implementados
+
+- **Issue completada:** #15 - Migración y Modelo de Enfermeros
+- **Resultado:**
   - ✅ Enum `TipoAsignacion` creado con 2 tipos: fijo, rotativo
   - ✅ Métodos helper en enum: `label()`, `descripcion()`, `toArray()`
   - ✅ Migración `create_enfermeros_table` con FK única a `users` (relación 1:1)
@@ -399,11 +496,19 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   - ✅ Relación `belongsTo(Area::class, 'area_fija_id')` para área fija
   - ✅ Scopes implementados: `fijos()`, `rotativos()`, `byArea()`
   - ✅ Modelo `User` actualizado con relación `hasOne(Enfermero::class)`
-  - ⏳ Pendiente: Factory, Seeder, Tests, ejecutar migración
+  - ✅ Factory `EnfermeroFactory` con métodos `fijo()` y `rotativo()`
+  - ✅ Seeder `EnfermeroSeeder` con distribución 60% fijos, 40% rotativos
+  - ✅ Suite completa de 15 tests en `EnfermeroTest.php`
+  - ✅ Todos los 15 tests pasando (37 assertions, 1.69s)
+  - ✅ Migración ejecutada exitosamente
+  - ✅ Seeder ejecutado: 30 enfermeros creados
 - **Archivos creados:**
   - `app/Enums/TipoAsignacion.php`
   - `database/migrations/2025_10_09_044245_create_enfermeros_table.php`
   - `app/Models/Enfermero.php`
+  - `database/factories/EnfermeroFactory.php`
+  - `database/seeders/EnfermeroSeeder.php`
+  - `tests/Feature/EnfermeroTest.php`
 - **Archivos modificados:**
   - `app/Models/User.php` (agregada relación hasOne)
 - **Relación 1:1 User-Enfermero:**
@@ -414,8 +519,28 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - **Tipos de asignación:**
   - **Fijo:** Enfermero asignado permanentemente a un área (requiere `area_fija_id`)
   - **Rotativo:** Enfermero que rota entre diferentes áreas (area_fija_id es null)
+- **Tests implementados:**
+  1. Crear enfermero con usuario asociado
+  2. Relación 1:1 con User (belongsTo)
+  3. Relación hasOne desde User
+  4. Relación belongsTo con Area para área fija
+  5. Validar FK única user_id
+  6. Validar cédula profesional única
+  7. Verificar default tipo_asignacion (fijo)
+  8. Validar tipos permitidos (fijo, rotativo)
+  9. Actualizar enfermero
+  10. Eliminar enfermero
+  11. Cascade delete cuando se elimina usuario
+  12. Scope fijos()
+  13. Scope rotativos()
+  14. Scope byArea()
+  15. Factory crea enfermero válido
+- **Distribución del seeder:**
+  - 60% enfermeros fijos (18 de 30)
+  - 40% enfermeros rotativos (12 de 30)
+  - Reúsa usuarios existentes con rol enfermero o crea nuevos
 - **Decisión técnica:** Se usó FK única en `user_id` en lugar de FK en `users` para garantizar la relación 1:1 estricta. Solo usuarios con rol enfermero tendrán perfil en esta tabla.
-- **Notas:** Pendiente completar factory, seeder con datos de ejemplo vinculados a usuarios existentes, y suite de tests para verificar la relación 1:1.
+- **Notas:** Factory incluye lógica condicional para asignar `area_fija_id` solo cuando `tipo_asignacion` es fijo. La relación 1:1 garantiza que cada usuario solo puede tener un perfil de enfermero.
 
 ---
 
