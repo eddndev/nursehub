@@ -38,5 +38,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/camas', \App\Livewire\Admin\CamaManager::class)->name('admin.camas');
 });
 
+// Mapa del Hospital - Coordinadores y Admins
+Route::middleware(['auth', 'role:admin,coordinador'])->group(function () {
+    Route::get('/hospital-map', \App\Livewire\HospitalMap::class)->name('hospital.map');
+});
+
 require __DIR__.'/socialite.php';
 require __DIR__.'/auth.php';

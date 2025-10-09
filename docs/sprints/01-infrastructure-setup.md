@@ -23,8 +23,8 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - [x] `#10` - Migración y Modelo de Camas ✅ **Completada 2025-10-08**
 - [x] `#11` - CRUD de Áreas con Livewire ✅ **Completada 2025-10-09**
 - [x] `#12` - CRUD de Pisos con Livewire ✅ **Completada 2025-10-09**
-- [ ] `#13` - CRUD de Cuartos y Camas con Livewire
-- [ ] `#14` - Mapa Visual del Hospital
+- [x] `#13` - CRUD de Cuartos y Camas con Livewire ✅ **Completada 2025-10-09**
+- [x] `#14` - Mapa Visual del Hospital ✅ **Completada 2025-10-09**
 
 **MÓDULO 2: Autenticación y Roles (Básico)**
 
