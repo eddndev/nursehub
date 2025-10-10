@@ -1,0 +1,11 @@
+# Generated artifacts
+chunks.json
+vector_db/
+prompt.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS-specific
+.DS_Store
