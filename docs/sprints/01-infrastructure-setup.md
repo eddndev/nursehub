@@ -482,6 +482,162 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
   - Campo especialidad nullable para flexibilidad por piso
 - **Notas:** Segundo CRUD implementado siguiendo el patrón de AreaManager. Demuestra manejo de relaciones belongsTo en Livewire con select dropdowns.
 
+### 2025-10-09: Issue #13 - CRUD de Cuartos y Camas con Livewire Implementado
+
+- **Issue completada:** #13 - CRUD de Cuartos y Camas con Livewire
+- **Resultado:**
+  - ✅ Componente Livewire `CuartoManager` con CRUD completo
+  - ✅ Componente Livewire `CamaManager` con CRUD completo y gestión de estados
+  - ✅ Vistas Blade responsivas con tablas y formularios inline
+  - ✅ Rutas protegidas `/admin/cuartos` y `/admin/camas` con middleware `role:admin`
+  - ✅ Validaciones con #[Validate] attributes en Livewire 3
+  - ✅ Eager loading de relaciones para optimizar queries
+  - ✅ Suite completa de 14 tests en `CuartoManagerTest.php`
+  - ✅ Suite completa de 16 tests en `CamaManagerTest.php`
+  - ✅ Todos los 30 tests pasando (76 assertions total)
+- **Archivos creados:**
+  - `app/Livewire/Admin/CuartoManager.php`
+  - `resources/views/livewire/admin/cuarto-manager.blade.php`
+  - `tests/Feature/CuartoManagerTest.php`
+  - `app/Livewire/Admin/CamaManager.php`
+  - `resources/views/livewire/admin/cama-manager.blade.php`
+  - `tests/Feature/CamaManagerTest.php`
+- **Archivos modificados:**
+  - `routes/web.php` (agregadas rutas admin.cuartos y admin.camas)
+- **Funcionalidades implementadas:**
+  - **CuartoManager:**
+    - Crear cuarto con selección de piso mediante dropdown
+    - Editar cuarto con validación de tipo (individual, doble, multiple)
+    - Eliminar cuarto con confirmación wire:confirm
+    - Listar cuartos con eager loading de piso.area (10 por página)
+    - Validación exists:pisos,id para piso_id
+    - Badges diferenciados por tipo de cuarto
+    - Link directo a gestión de camas del cuarto
+  - **CamaManager:**
+    - Crear cama con selección de cuarto y estado
+    - Editar cama con validación de estado permitido
+    - Eliminar cama con confirmación
+    - Actualizar estado de cama en tiempo real con método `updateEstado()`
+    - Filtrar camas por cuarto específico
+    - Listar camas con eager loading de cuarto.piso.area
+    - Badges con colores según estado (verde=libre, rojo=ocupada, amarillo=limpieza, gris=mantenimiento)
+    - Select dropdown para cambio rápido de estado
+- **Tests implementados CuartoManager:**
+  1. Admin puede acceder a la página
+  2. No-admin recibe 403
+  3. Guest redirige a login
+  4. Componente se renderiza correctamente
+  5. Lista de cuartos se muestra
+  6. Crear cuarto
+  7. Validar campos requeridos
+  8. Validar que piso exista
+  9. Validar tipos permitidos (individual, doble, multiple)
+  10. Editar cuarto
+  11. Eliminar cuarto
+  12. Cancelar formulario
+  13. Pisos se cargan en dropdown
+  14. Cuarto se muestra con relaciones completas (piso.area)
+- **Tests implementados CamaManager:**
+  1. Admin puede acceder a la página
+  2. No-admin recibe 403
+  3. Guest redirige a login
+  4. Componente se renderiza correctamente
+  5. Lista de camas se muestra
+  6. Crear cama
+  7. Validar campos requeridos
+  8. Validar que cuarto exista
+  9. Validar estados permitidos (libre, ocupada, en_limpieza, en_mantenimiento)
+  10. Editar cama
+  11. Eliminar cama
+  12. Actualizar estado de cama con método `updateEstado()`
+  13. Cancelar formulario
+  14. Filtrar camas por cuarto específico
+  15. Cuartos se cargan en dropdown
+  16. Cama se muestra con relaciones completas (cuarto.piso.area)
+- **Decisiones técnicas:**
+  - Select dropdown poblado con pisos/cuartos ordenados con eager loading
+  - Eager loading `Cuarto::with('piso.area')` y `Cama::with('cuarto.piso.area')` para evitar N+1
+  - Validación exists para garantizar integridad referencial
+  - Método `updateEstado()` para cambio rápido de estado de camas sin editar toda la cama
+  - Filtrado opcional por cuarto en CamaManager usando parámetro de ruta
+  - Badges con sistema de colores consistente usando enum `CamaEstado::color()`
+  - Accordion en vista de cuartos para expandir/colapsar camas (implementación futura)
+- **Bloqueo resuelto:**
+  - **Error:** Tests no se ejecutaban por falta de prefijo `test_` en nombres de funciones
+  - **Solución:** Renombrar todas las funciones de test con prefijo `test_` (ej: `test_admin_puede_acceder_a_cuarto_manager`)
+  - **Resultado:** Todos los 30 tests pasando correctamente
+- **Notas:** Tercer y cuarto CRUD implementados siguiendo el patrón establecido. Demuestra manejo avanzado de relaciones anidadas (cuarto.piso.area) y gestión de estados en tiempo real con Livewire. El sistema de camas incluye cambio rápido de estado mediante select dropdown.
+
+### 2025-10-09: Issue #14 - Mapa Visual del Hospital Implementado
+
+- **Issue completada:** #14 - Mapa Visual del Hospital
+- **Resultado:**
+  - ✅ Componente Livewire `HospitalMap` con visualización jerárquica completa
+  - ✅ Vista Blade con estructura accordion multinivel usando Alpine.js
+  - ✅ Ruta protegida `/hospital-map` con middleware `role:admin,coordinador`
+  - ✅ Sistema de filtros avanzados (por área, por estado, solo disponibles)
+  - ✅ Cálculo de estadísticas generales del hospital
+  - ✅ Eager loading optimizado de toda la jerarquía
+  - ✅ Suite completa de 16 tests en `HospitalMapTest.php`
+  - ✅ Todos los 16 tests pasando (34 assertions, 1.40s)
+- **Archivos creados:**
+  - `app/Livewire/HospitalMap.php`
+  - `resources/views/livewire/hospital-map.blade.php`
+  - `tests/Feature/HospitalMapTest.php`
+- **Archivos modificados:**
+  - `routes/web.php` (agregada ruta hospital.map)
+- **Funcionalidades implementadas:**
+  - **Visualización jerárquica:**
+    - Accordion de 4 niveles: Áreas → Pisos → Cuartos → Camas
+    - Expansión/colapso con Alpine.js usando `x-collapse`
+    - Navegación intuitiva con iconos de chevron
+    - Badges de color para estados de camas
+    - Badges informativos para tipo de cuarto (individual, doble, multiple)
+  - **Estadísticas generales:**
+    - Total de áreas, pisos, cuartos y camas
+    - Camas libres, ocupadas, en limpieza, en mantenimiento
+    - Porcentaje de ocupación del hospital
+    - Porcentaje de disponibilidad
+    - Tarjetas con iconos y colores diferenciados
+  - **Sistema de filtros:**
+    - Filtro por área específica (dropdown)
+    - Filtro por estado de cama (libre, ocupada, en_limpieza, en_mantenimiento)
+    - Checkbox "Solo camas disponibles" (filtra solo libres)
+    - Botón "Limpiar filtros" para resetear
+    - Actualización reactiva con Livewire
+  - **Optimizaciones:**
+    - Eager loading de 4 niveles: `areas.pisos.cuartos.camas`
+    - Filtrado a nivel de query para reducir datos cargados
+    - Cálculo de estadísticas con queries agregadas
+    - Ordenamiento automático (áreas por nombre, pisos por número, etc.)
+- **Tests implementados:**
+  1. Admin puede acceder al mapa
+  2. Coordinador puede acceder al mapa
+  3. Enfermero no puede acceder al mapa (403)
+  4. Guest redirige a login
+  5. Componente se renderiza correctamente
+  6. Muestra estadísticas generales (total áreas, camas, libres, ocupadas)
+  7. Muestra áreas con pisos y cuartos
+  8. Muestra camas con estados
+  9. Filtro por área funciona correctamente
+  10. Filtro por estado funciona correctamente
+  11. Checkbox "Solo disponibles" filtra camas libres
+  12. Limpiar filtros resetea todos los filtros
+  13. Calcula porcentaje de ocupación correctamente
+  14. Muestra mensaje cuando no hay resultados
+  15. Muestra tipo de cuarto correctamente
+  16. Cuenta pisos y cuartos por área correctamente
+- **Decisiones técnicas:**
+  - Uso de Alpine.js `x-collapse` para animaciones suaves de accordion
+  - Eager loading con filtros aplicados en closures para optimizar memoria
+  - Método `calcularEstadisticas()` separado para reutilización
+  - Método `aplicarFiltros()` que recarga datos con criterios actuales
+  - Layout `layouts.admin` para consistencia con otros módulos
+  - Acceso permitido a admins y coordinadores (múltiples roles en middleware)
+  - Tarjetas de estadísticas con gradientes y colores del design system
+  - Grid responsive que se adapta a diferentes tamaños de pantalla
+- **Notas:** Componente central del módulo de configuración hospitalaria. Permite visualizar la estructura completa del hospital en una sola vista. Útil para coordinadores y admins que necesitan tener una visión general de disponibilidad de camas. El sistema de filtros facilita búsqueda rápida de recursos específicos.
+
 ### 2025-10-09: Issue #15 - Enfermeros Implementados
 
 - **Issue completada:** #15 - Migración y Modelo de Enfermeros

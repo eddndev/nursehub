@@ -36,6 +36,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/pisos', \App\Livewire\Admin\PisoManager::class)->name('admin.pisos');
     Route::get('/cuartos', \App\Livewire\Admin\CuartoManager::class)->name('admin.cuartos');
     Route::get('/camas', \App\Livewire\Admin\CamaManager::class)->name('admin.camas');
+    Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('admin.users');
 });
 
 // Mapa del Hospital - Coordinadores y Admins
