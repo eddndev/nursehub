@@ -92,11 +92,15 @@ Al completar el MVP, el hospital contará con un registro clínico electrónico 
     * Historial cronológico del paciente desde admisión hasta alta
     * Visualización de gráficos de tendencias de signos vitales
 
-* **Módulo 2 - Gestión de Personal de Enfermería:**
-    * CRUD de perfiles de enfermeros con datos profesionales (cédula, certificaciones)
-    * Sistema de roles: Admin, Coordinador General, Jefe de Piso, Enfermero, Jefe de Capacitación
-    * Asignación de tipo: Fijo (a un área específica) o Rotativo
-    * Registro de habilidades/certificaciones (ej: "Manejo de Paciente Pediátrico")
+* **Módulo 2 - Gestión de Personal de Enfermería:** ✅ **Parcialmente Implementado** (2025-10-09)
+    * ✅ CRUD de usuarios con gestión de roles (Admin, Coordinador, Jefe de Piso, Enfermero, Jefe de Capacitación)
+    * ✅ CRUD de perfiles de enfermeros con datos profesionales (cédula, certificaciones)
+    * ✅ Relación 1:1 automática User-Enfermero con creación/actualización/eliminación sincronizada
+    * ✅ Asignación de tipo: Fijo (a un área específica) o Rotativo
+    * ✅ Validaciones condicionales basadas en rol (campos de enfermero solo si role='enfermero')
+    * ✅ Toggle de activación/desactivación de usuarios
+    * ✅ Gestión de passwords con actualización opcional en edición
+    * [ ] Registro de habilidades/certificaciones específicas (ej: "Manejo de Paciente Pediátrico") - Pendiente para v1.1
 
 * **Módulo 3 - Asignación de Pacientes y Turnos:**
     * Programación de turnos: Matutino (8-19), Nocturno (19-8)
