@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Models\Enfermero;
 use App\Enums\CamaEstado;
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 
 class Dashboard extends Component
 {
@@ -29,16 +28,11 @@ class Dashboard extends Component
         $this->stats['total_cuartos'] = Cuarto::count();
         $this->stats['total_camas'] = Cama::count();
 
-        // Estadísticas de camas por estado
-        $camasEstados = Cama::select('estado', DB::raw('count(*) as total'))
-            ->groupBy('estado')
-            ->get()
-            ->pluck('total', 'estado');
-
-        $this->stats['camas_libres'] = $camasEstados['libre'] ?? 0;
-        $this->stats['camas_ocupadas'] = $camasEstados['ocupada'] ?? 0;
-        $this->stats['camas_limpieza'] = $camasEstados['en_limpieza'] ?? 0;
-        $this->stats['camas_mantenimiento'] = $camasEstados['en_mantenimiento'] ?? 0;
+        // Estadísticas de camas por estado (usando scopes del modelo)
+        $this->stats['camas_libres'] = Cama::libre()->count();
+        $this->stats['camas_ocupadas'] = Cama::ocupada()->count();
+        $this->stats['camas_limpieza'] = Cama::where('estado', CamaEstado::EN_LIMPIEZA)->count();
+        $this->stats['camas_mantenimiento'] = Cama::where('estado', CamaEstado::EN_MANTENIMIENTO)->count();
 
         // Porcentaje de ocupación
         $totalOperativas = $this->stats['camas_libres'] + $this->stats['camas_ocupadas'];

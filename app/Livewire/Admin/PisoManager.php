@@ -129,6 +129,6 @@ class PisoManager extends Component
         return view('livewire.admin.piso-manager', [
             'pisos' => Piso::with('area')->paginate(10),
             'areas' => Area::orderBy('nombre')->get(),
-        ])->layout('layouts.app');
+        ])->layout('layouts.admin');
     }
 }

@@ -114,6 +114,6 @@ class CuartoManager extends Component
 
         return view('livewire.admin.cuarto-manager', [
             'cuartos' => $cuartos,
-        ]);
+        ])->layout('layouts.admin');
     }
 }

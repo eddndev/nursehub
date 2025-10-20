@@ -142,6 +142,6 @@ class CamaManager extends Component
             'camas' => $camas,
             'cuarto' => $cuarto,
             'estados' => CamaEstado::cases(),
-        ]);
+        ])->layout('layouts.admin');
     }
 }

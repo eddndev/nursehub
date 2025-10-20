@@ -143,6 +143,6 @@ class AreaManager extends Component
     {
         return view('livewire.admin.area-manager', [
             'areas' => Area::paginate(10),
-        ])->layout('layouts.app');
+        ])->layout('layouts.admin');
     }
 }
