@@ -235,6 +235,7 @@ Un sprint es un ciclo de trabajo con un objetivo claro.
 
       * Se mueven las `Tareas` a través del Kanban.
       * Se documentan en vivo las decisiones y bloqueos en el diario del sprint.
+      * **Actualización Post-Tarea (OBLIGATORIO):** Al completarse una tarea (PR mergeado), el responsable **DEBE** actualizar la entrada de la issue en el `Diario del Sprint` para incluir una lista de `Archivos Afectados` (creados/modificados). Esto es crítico para la trazabilidad.
 
 4.  **Cierre y Retrospectiva:**
 

@@ -20,18 +20,34 @@ The agent receives a primary task. Typically, this will be a GitHub Issue ID or 
 
 - **Input Example:** `TASK_ID=16`
 
-### **Step 1: Task Deconstruction & Query Formulation**
+### **Step 1: Task Deconstruction & Query Synthesis**
 
-The agent must transform the primary task into a clear text query for the DCM subsystem.
+The agent must transform the primary task into a concise, semantically-rich query for the DCM subsystem.
 
-1.  **If the input is an Issue ID:** Use a CLI tool (like `gh`) to get the issue's title and/or body.
+1.  **Content Extraction:** Use a CLI tool (like `gh`) to get the **title and body** of the issue.
     ```bash
     # Requires 'gh' (GitHub CLI) to be installed and authenticated.
-    QUERY=$(gh issue view $TASK_ID --json title --jq .title)
+    ISSUE_CONTENT=$(gh issue view $TASK_ID --json title,body --template "{{.title}} {{.body}}")
     ```
-2.  **If the input is text:** Use the text directly as the query.
+
+2.  **Query Synthesis (CRITICAL STEP):** The agent must process the `$ISSUE_CONTENT` to create an optimized query. Instead of using the raw text, it should extract key concepts. The recommended method is a preliminary, low-cost LLM call.
+
+    **Conceptual Prompt for Query Synthesis:**
+    ```
+    You are a query optimization expert. Below is the content of a GitHub issue. Your task is to extract the most important keywords and concepts and combine them into a single, concise query string. This query will be used for a vector search to find relevant documentation and code. Do not explain, just provide the optimized query string.
+
+    **Issue Content:**
+    $ISSUE_CONTENT
+
+    **Optimized Query:**
+    ```
+
+    **Example:** For Issue #16, the agent would transform the full text into a powerful, focused query like:
+    `CRUD administration interface for Users and Nurse profiles with role-based creation in a database transaction and unique email validation`
+
+3.  **Final Query:** The output of the synthesis step becomes the final query.
     ```bash
-    QUERY="Implement CRUD for Users and Nurses"
+    OPTIMIZED_QUERY="CRUD administration interface for Users and..."
     ```
 
 ### **Step 2: DCM Subsystem Execution**

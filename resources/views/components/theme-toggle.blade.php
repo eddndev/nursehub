@@ -32,7 +32,7 @@
     </span>
 
     <button
-        @click="isDark = !isDark; window.toggleTheme(isDark ? 'dark' : 'light')"
+        x-on:click="isDark = !isDark; window.toggleTheme(isDark ? 'dark' : 'light')"
         type="button"
         aria-label="Toggle dark mode"
         class="absolute inset-0 appearance-none focus:outline-hidden"
