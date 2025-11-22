@@ -1,8 +1,11 @@
 {
-  "outputStyle": "default",
   "permissions": {
     "allow": [
-      "Bash(php artisan test:*)"
+      "Bash(php artisan test:*)",
+      "Bash(gh label create:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue edit:*)"
     ]
-  }
+  },
+  "outputStyle": "default"
 }

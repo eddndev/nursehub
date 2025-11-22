@@ -31,15 +31,15 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 - [x] `#5` - Extender Tabla Users con Campo Role ✅ **Completada 2025-10-08**
 - [x] `#6` - Crear Middleware de Autorización por Roles ✅ **Completada 2025-10-08**
 - [x] `#15` - Migración y Modelo de Enfermeros ✅ **Completada 2025-10-09**
-- [ ] `#16` - CRUD de Usuarios y Enfermeros
-- [ ] `#17` - Dashboard del Administrador
+- [x] `#16` - CRUD de Usuarios y Enfermeros ✅ **Completada 2025-11-22**
+- [x] `#17` - Dashboard del Administrador ✅ **Completada 2025-11-22**
 
 **Tareas Técnicas de Infraestructura**
 
 - [x] `#2` - Configuración de Variables de Entorno y Base de Datos ✅ **Completada 2025-10-08**
 - [x] `#3` - Configurar Tailwind CSS v4 con Design Tokens de NurseHub ✅ **Completada 2025-10-08**
 - [x] `#4` - Crear Layouts Base (Guest, Authenticated, Admin) ✅ **Completada 2025-10-08**
-- [ ] `#18` - Configurar GitHub Actions para CI
+- [x] `#18` - Configurar GitHub Actions para CI ⊗ **Marcada como No Aplica 2025-11-22**
 
 ---
 
@@ -700,13 +700,172 @@ Establecer la infraestructura técnica completa del proyecto NurseHub, implement
 
 ---
 
-## 5. Resultado del Sprint (A completar al final)
+### 2025-11-22: Issue #16 - CRUD de Usuarios y Enfermeros Implementado
 
-*   **Tareas Completadas:** [ ] X de Y
-*   **Resumen:** [Se completará al finalizar el sprint]
+- **Issue completada:** #16 - CRUD de Usuarios y Enfermeros
+- **Resultado:**
+  - ✅ Componente Livewire `UserManager` con CRUD completo
+  - ✅ Vista Blade responsiva con tabla, formulario inline y paginación
+  - ✅ Ruta protegida `/admin/users` con middleware `role:admin,coordinador`
+  - ✅ Gestión automática de relación 1:1 User-Enfermero en transacciones DB
+  - ✅ Validaciones dinámicas según rol seleccionado (enfermero/otros)
+  - ✅ Campos condicionales: datos de enfermero solo si role='enfermero'
+  - ✅ Sistema de filtros avanzados (búsqueda, por rol, por estado)
+  - ✅ Toggle activar/desactivar usuarios
+  - ✅ Suite completa de 27 tests en `UserManagerTest.php`
+  - ✅ Todos los 27 tests pasando (69 assertions, 2.30s)
+  - ✅ Enlace de navegación agregado en admin sidebar
+- **Archivos creados/modificados:**
+  - `app/Livewire/Admin/UserManager.php` (mejorado con filtros y gestión de perfil)
+  - `resources/views/livewire/admin/user-manager.blade.php` (vista completa)
+  - `resources/views/layouts/partials/admin-sidebar.blade.php` (agregado enlace)
+  - `routes/web.php` (actualizado middleware a `role:admin,coordinador`)
+  - `tests/Feature/UserManagerTest.php` (actualizado con tests de coordinador)
+- **Funcionalidades implementadas:**
+  - **Crear usuario:** Formulario con validación dinámica según rol
+  - **Gestión de perfil de enfermero:**
+    - Al crear user con role='enfermero' → crea perfil automáticamente
+    - Al cambiar rol a 'enfermero' → crea perfil si no existe
+    - Al cambiar rol desde 'enfermero' → elimina perfil automáticamente
+    - Validaciones condicionales (cédula única, área fija si tipo=fijo)
+  - **Editar usuario:** Con opción de cambiar password o mantenerlo
+  - **Eliminar usuario:** Cascade delete del perfil de enfermero
+  - **Activar/desactivar:** Toggle de estado is_active
+  - **Filtros avanzados:**
+    - Búsqueda en tiempo real por nombre o email (debounce 300ms)
+    - Filtro por rol (5 opciones)
+    - Filtro por estado (activo/inactivo)
+    - Botón "Limpiar filtros"
+  - **Tabla con datos completos:**
+    - Nombre, email, rol (badges con colores)
+    - Estado clickeable para activar/desactivar
+    - Columna "Datos de Enfermería" con cédula, tipo, área fija, experiencia
+- **Tests implementados (27 total):**
+  - 3 tests de acceso (admin, coordinador, no-autorizado)
+  - 8 tests de validación (campos requeridos, únicos, condicionales)
+  - 6 tests de creación (user simple, user+enfermero, lógica condicional)
+  - 6 tests de edición (cambio de password, cambio de rol, actualización de perfil)
+  - 4 tests de funcionalidad (eliminar, toggle activo, filtros, datos en tabla)
+- **Decisiones técnicas:**
+  - Uso de `DB::transaction()` para crear/actualizar User + Enfermero atómicamente
+  - Validaciones dinámicas usando lógica if ($this->role === 'enfermero')
+  - Eager loading `User::with('enfermero.areaFija')` para optimizar queries
+  - Filtrado reactivo con Livewire y wire:model.live.debounce
+  - Middleware actualizado a `role:admin,coordinador` según Manifiesto del proyecto
+  - Password opcional en edición (solo actualiza si se proporciona)
+- **Notas:** CRUD completo que maneja perfectamente la relación 1:1 User-Enfermero con lógica inteligente de creación/actualización/eliminación del perfil según el rol. Los coordinadores tienen acceso completo al CRUD según su rol definido en el Manifiesto.
+
+---
+
+### 2025-11-22: Issue #17 - Dashboard del Administrador Implementado
+
+- **Issue completada:** #17 - Dashboard del Administrador
+- **Resultado:**
+  - ✅ Componente Livewire `Dashboard` con estadísticas completas del sistema
+  - ✅ Vista Blade responsiva con tarjetas, tablas y barra de progreso
+  - ✅ Ruta `/dashboard` accesible por usuarios autenticados
+  - ✅ Estadísticas de infraestructura (áreas, pisos, cuartos, camas, usuarios)
+  - ✅ Estadísticas de camas por estado con porcentaje de ocupación
+  - ✅ Estadísticas de personal (usuarios, enfermeros, fijos vs rotativos)
+  - ✅ Top 5 áreas por cantidad de camas
+  - ✅ Últimos 5 usuarios registrados con avatares
+  - ✅ Suite completa de 19 tests en `DashboardTest.php`
+  - ✅ Todos los 19 tests pasando (46 assertions, 1.75s)
+  - ✅ Scope `withCamasCount()` agregado al modelo Area
+- **Archivos creados/modificados:**
+  - `app/Livewire/Admin/Dashboard.php` (mejorado con estadísticas completas)
+  - `resources/views/livewire/admin/dashboard.blade.php` (vista completa rediseñada)
+  - `app/Models/Area.php` (agregado scope `withCamasCount()`)
+  - `tests/Feature/DashboardTest.php` (creado con 19 tests)
+  - `database/factories/AreaFactory.php` (fix: códigos y nombres únicos)
+- **Estadísticas implementadas:**
+  - **Infraestructura:** Total de áreas, pisos, cuartos, camas, usuarios
+  - **Camas:** Libres, ocupadas, en limpieza, en mantenimiento
+  - **Ocupación:** Porcentaje calculado dinámicamente con barra de progreso
+  - **Personal:** Total usuarios, activos/inactivos, enfermeros, fijos/rotativos
+  - **Análisis:** Top 5 áreas por cantidad de camas con withCount optimizado
+  - **Recientes:** Últimos 5 usuarios registrados con avatares circulares
+- **Componentes visuales:**
+  - 4 tarjetas principales con iconos, colores y enlaces de acción
+  - 2 tarjetas de estadísticas detalladas con gráficos
+  - 2 tablas informativas (top áreas, usuarios recientes)
+  - Barra de progreso de ocupación con porcentaje
+  - Badges con colores para estados y roles
+  - Dark mode completo con esquema de colores consistente
+- **Tests implementados (19 total):**
+  - 5 tests de acceso y renderizado (admin, coordinador, enfermero, guest)
+  - 9 tests de estadísticas (áreas, pisos, cuartos, camas, ocupación, usuarios, enfermeros, etc.)
+  - 5 tests de funcionalidad (ultimos usuarios, top áreas, distribución, datos vacíos, enlaces)
+- **Decisiones técnicas:**
+  - Scope custom `withCamasCount()` en Area para contar camas a través de jerarquía (Area → Pisos → Cuartos → Camas)
+  - Uso de joins para contar camas de forma eficiente sin N+1 queries
+  - Eager loading `User::with('enfermero')` para últimos usuarios
+  - Cálculo de porcentaje de ocupación: (ocupadas / operativas) * 100
+  - Sistema de colores: Azul (áreas), Cyan (pisos), Púrpura (camas), Verde (usuarios)
+  - Grid responsive con Tailwind (grid-cols-1 sm:grid-cols-2 lg:grid-cols-4)
+  - Enlaces funcionales en todas las tarjetas (Ver áreas →, Ver usuarios →, etc.)
+- **Notas:** Dashboard completo que proporciona visión general del estado del hospital en tiempo real. Ideal para coordinadores y admins que necesitan supervisar el sistema. Todas las estadísticas se calculan dinámicamente en cada carga.
+
+---
+
+### 2025-11-22: Issue #18 - Marcado como No Aplica
+
+- **Issue cerrada:** #18 - Configurar GitHub Actions para CI
+- **Razón:** El proyecto no implementará procesos de CI/CD en este momento
+- **Decisión:** El enfoque será en desarrollo local y deployment manual
+- **Estado:** ⊗ **NO APLICA**
+
+---
+
+## 5. Resultado del Sprint
+
+*   **Tareas Completadas:** ✅ **16 de 17 issues (94.1%)**
+*   **Issues No Aplicables:** ⊗ **1 issue (#18 - CI/CD)**
+*   **Periodo Real:** 2025-10-07 al 2025-11-22 (46 días, ~6.5 semanas)
+*   **Resumen:**
+
+    El Sprint 1 se completó exitosamente con **16 de 17 issues implementadas** (94.1% de completitud). Se estableció toda la infraestructura técnica del proyecto, incluyendo el sistema de autenticación con 5 roles, el módulo completo de configuración hospitalaria (Módulo 0) con jerarquía de 4 niveles (Áreas → Pisos → Cuartos → Camas), y el sistema de gestión de personal de enfermería con relación 1:1 User-Enfermero.
+
+    El sistema cuenta ahora con:
+    - **165+ tests pasando** con 357+ assertions
+    - **8 áreas** hospitalarias configuradas
+    - **12 pisos** distribuidos en 10 niveles
+    - **~220 cuartos** con tipos (individual, doble, múltiple)
+    - **~400-500 camas** con gestión de estados en tiempo real
+    - **Sistema de roles completo** (Admin, Coordinador, Jefe de Piso, Enfermero, Jefe de Capacitación)
+    - **30 enfermeros de prueba** (60% fijos, 40% rotativos)
+    - **4 CRUDs completos** con Livewire (Áreas, Pisos, Cuartos/Camas, Usuarios/Enfermeros)
+    - **Mapa visual del hospital** con filtros avanzados
+    - **Dashboard del administrador** con estadísticas en tiempo real
+    - **Tailwind CSS v4** con Design System completo + Dark Mode
+    - **Layouts responsivos** (Guest, Authenticated, Admin)
+
+    La única issue no completada (#18 - CI/CD) se marcó como "No Aplica" por decisión del equipo.
+
 *   **Aprendizajes / Retrospectiva:**
-    *   **Qué funcionó bien:** [Se completará al finalizar]
-    *   **Qué se puede mejorar:** [Se completará al finalizar]
+
+    *   **Qué funcionó bien:**
+        - ✅ La metodología Docs-First permitió tener claridad total antes de implementar
+        - ✅ El sistema de labels y GitHub Projects facilitó el tracking de tareas
+        - ✅ La estructura de tests primero (TDD) garantizó código robusto desde el inicio
+        - ✅ El uso de Enums backed de PHP 8.3 para roles y estados proporcionó type safety
+        - ✅ Livewire 3 con #[Validate] attributes simplificó las validaciones
+        - ✅ El patrón de eager loading previno problemas de N+1 queries
+        - ✅ El Design System con Tailwind CSS v4 aseguró consistencia visual
+        - ✅ La implementación de Dark Mode desde el inicio mejoró la experiencia
+        - ✅ La relación 1:1 User-Enfermero con lógica automática de gestión funcionó perfectamente
+        - ✅ El sistema de scopes en modelos facilitó queries complejas
+        - ✅ La documentación detallada en el diario del sprint ayudó a la trazabilidad
+
+    *   **Qué se puede mejorar:**
+        - ⚠️ La duración real del sprint (6.5 semanas) excedió lo planificado (2 semanas)
+        - ⚠️ Algunos tests fallaron inicialmente por unique constraints en factories (resuelto agregando sufijos únicos)
+        - ⚠️ El scope `withCamasCount()` requirió una solución custom ya que `hasManyThrough` no soporta 3 niveles
+        - ⚠️ Falta implementar el sistema de Git hooks para automatizar tests antes de commits
+        - ⚠️ Algunas vistas de AreaManager y PisoManager tienen textos hardcodeados que deberían estar en diario del sprint
+        - 💡 Para el próximo sprint: estimar tiempos de forma más realista y considerar buffer para imprevistos
+        - 💡 Considerar implementar cache para estadísticas del dashboard si el volumen de datos crece
+        - 💡 Evaluar agregar índices compuestos en tablas con queries frecuentes
 
 ---
 
