@@ -4,7 +4,10 @@
       "Bash(php artisan test:*)",
       "Bash(gh label create:*)",
       "Bash(gh issue create:*)",
-      "Bash(gh issue edit:*)"
+      "Bash(gh issue edit:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan:*)",
+      "Bash(git add:*)"
     ]
   },
   "outputStyle": "default"
