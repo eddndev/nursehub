@@ -16,6 +16,7 @@ class UserManagerTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+    private User $coordinador;
     private User $enfermero;
     private Area $area;
 
@@ -24,6 +25,7 @@ class UserManagerTest extends TestCase
         parent::setUp();
 
         $this->admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $this->coordinador = User::factory()->create(['role' => UserRole::COORDINADOR]);
         $this->enfermero = User::factory()->create(['role' => UserRole::ENFERMERO]);
         $this->area = Area::factory()->create();
     }
@@ -36,7 +38,14 @@ class UserManagerTest extends TestCase
     }
 
     /** @test */
-    public function test_no_admin_recibe_403()
+    public function test_coordinador_puede_acceder_a_user_manager()
+    {
+        $response = $this->actingAs($this->coordinador)->get(route('admin.users'));
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function test_no_admin_o_coordinador_recibe_403()
     {
         $response = $this->actingAs($this->enfermero)->get(route('admin.users'));
         $response->assertStatus(403);

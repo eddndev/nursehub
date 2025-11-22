@@ -27,8 +27,10 @@ class AreaFactory extends Factory
         $area = fake()->randomElement($areas);
 
         return [
-            'nombre' => $area['nombre'],
-            'codigo' => $area['codigo'],
+            // Generar nombre único agregando un sufijo
+            'nombre' => $area['nombre'] . ' ' . fake()->unique()->numberBetween(1, 999),
+            // Generar código único agregando un número aleatorio
+            'codigo' => $area['codigo'] . fake()->unique()->numberBetween(10, 9999),
             'descripcion' => fake()->sentence(),
             'opera_24_7' => fake()->boolean(80), // 80% opera 24/7
             'ratio_enfermero_paciente' => $area['ratio'],

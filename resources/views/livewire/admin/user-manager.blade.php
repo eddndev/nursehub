@@ -1,262 +1,434 @@
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
-                {{-- Header --}}
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                        Gestión de Usuarios
-                    </h2>
-                    @if (!$showForm)
-                        <button wire:click="$set('showForm', true)"
-                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                            + Nuevo Usuario
-                        </button>
-                    @endif
+<div class="p-6">
+    {{-- Header --}}
+    <div class="mb-6 flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Gestión de Usuarios</h2>
+        <button
+            wire:click="showCreateForm"
+            class="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors dark:bg-blue-600 dark:hover:bg-blue-700"
+        >
+            {{ $showForm ? 'Cancelar' : '+ Nuevo Usuario' }}
+        </button>
+    </div>
+
+    {{-- Mensajes flash --}}
+    @if (session()->has('message'))
+        <div class="mb-4 bg-green-50 border-l-4 border-green-500 p-4 dark:bg-green-900/20 dark:border-green-500">
+            <p class="text-green-800 dark:text-green-400">{{ session('message') }}</p>
+        </div>
+    @endif
+
+    {{-- Formulario --}}
+    @if ($showForm)
+        <div class="mb-6 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+            <h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">
+                {{ $editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}
+            </h3>
+
+            <form wire:submit.prevent="{{ $editingUserId ? 'update' : 'create' }}" class="space-y-4">
+                {{-- Datos de Usuario --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Nombre --}}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Nombre Completo *
+                        </label>
+                        <input
+                            type="text"
+                            wire:model="name"
+                            placeholder="Ej: Juan Pérez López"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                        >
+                        @error('name')
+                            <span class="text-red-600 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Email --}}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Correo Electrónico *
+                        </label>
+                        <input
+                            type="email"
+                            wire:model="email"
+                            placeholder="Ej: juan@nursehub.com"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                        >
+                        @error('email')
+                            <span class="text-red-600 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Password --}}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Contraseña {{ $editingUserId ? '(dejar en blanco para mantener)' : '*' }}
+                        </label>
+                        <input
+                            type="password"
+                            wire:model="password"
+                            placeholder="{{ $editingUserId ? 'Dejar en blanco para no cambiar' : 'Mínimo 8 caracteres' }}"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                        >
+                        @error('password')
+                            <span class="text-red-600 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Rol --}}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Rol del Sistema *
+                        </label>
+                        <select
+                            wire:model.live="role"
+                            class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 transition-all"
+                        >
+                            <option value="">Seleccione un rol</option>
+                            <option value="admin">Administrador</option>
+                            <option value="coordinador">Coordinador General</option>
+                            <option value="jefe_piso">Jefe de Piso/Área</option>
+                            <option value="enfermero">Enfermero</option>
+                            <option value="jefe_capacitacion">Jefe de Capacitación</option>
+                        </select>
+                        @error('role')
+                            <span class="text-red-600 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Estado Activo --}}
+                    <div class="md:col-span-2">
+                        <div class="flex items-center">
+                            <input
+                                wire:model="is_active"
+                                id="is_active"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900"
+                            >
+                            <label for="is_active" class="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                                Usuario Activo (puede iniciar sesión en el sistema)
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Mensajes flash --}}
-                @if (session()->has('message'))
-                    <div class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-200">
-                        {{ session('message') }}
-                    </div>
-                @endif
+                {{-- Campos específicos para enfermeros --}}
+                @if ($role === 'enfermero')
+                    <div class="border-t border-slate-300 dark:border-slate-600 pt-4 mt-4">
+                        <h4 class="text-md font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            Datos Profesionales de Enfermería
+                        </h4>
 
-                {{-- Formulario --}}
-                @if ($showForm)
-                    <div class="mb-6 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                        <h3 class="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
-                            {{ $editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}
-                        </h3>
-
-                        <form wire:submit.prevent="{{ $editingUserId ? 'update' : 'create' }}">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                {{-- Nombre --}}
-                                <div>
-                                    <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Nombre Completo *
-                                    </label>
-                                    <input type="text" id="name" wire:model="name"
-                                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                    @error('name') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                {{-- Email --}}
-                                <div>
-                                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Correo Electrónico *
-                                    </label>
-                                    <input type="email" id="email" wire:model="email"
-                                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                    @error('email') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                {{-- Password --}}
-                                <div>
-                                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Contraseña {{ $editingUserId ? '(dejar en blanco para mantener)' : '*' }}
-                                    </label>
-                                    <input type="password" id="password" wire:model="password"
-                                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                    @error('password') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                {{-- Rol --}}
-                                <div>
-                                    <label for="role" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Rol *
-                                    </label>
-                                    <select id="role" wire:model.live="role"
-                                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                        <option value="">Seleccione un rol</option>
-                                        <option value="admin">Administrador</option>
-                                        <option value="coordinador">Coordinador</option>
-                                        <option value="jefe_piso">Jefe de Piso</option>
-                                        <option value="enfermero">Enfermero</option>
-                                        <option value="jefe_capacitacion">Jefe de Capacitación</option>
-                                    </select>
-                                    @error('role') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                {{-- Estado Activo --}}
-                                <div class="flex items-center">
-                                    <label class="flex items-center cursor-pointer">
-                                        <input type="checkbox" wire:model="is_active"
-                                               class="w-4 h-4 text-blue-600 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                        <span class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">Usuario Activo</span>
-                                    </label>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Cédula Profesional --}}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Cédula Profesional *
+                                </label>
+                                <input
+                                    type="text"
+                                    wire:model="cedula_profesional"
+                                    placeholder="Ej: 12345678"
+                                    maxlength="50"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                                >
+                                @error('cedula_profesional')
+                                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            {{-- Campos específicos para enfermeros --}}
-                            @if ($role === 'enfermero')
-                                <div class="border-t border-slate-300 dark:border-slate-600 pt-4 mt-4">
-                                    <h4 class="text-md font-medium text-slate-900 dark:text-slate-100 mb-3">
-                                        Datos de Enfermero
-                                    </h4>
+                            {{-- Tipo de Asignación --}}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Tipo de Asignación *
+                                </label>
+                                <select
+                                    wire:model.live="tipo_asignacion"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 transition-all"
+                                >
+                                    <option value="fijo">Fijo - Asignado permanentemente a un área</option>
+                                    <option value="rotativo">Rotativo - Rota entre diferentes áreas</option>
+                                </select>
+                                @error('tipo_asignacion')
+                                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {{-- Cédula Profesional --}}
-                                        <div>
-                                            <label for="cedula" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Cédula Profesional *
-                                            </label>
-                                            <input type="text" id="cedula" wire:model="cedula_profesional"
-                                                   class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                            @error('cedula_profesional') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                        </div>
-
-                                        {{-- Tipo de Asignación --}}
-                                        <div>
-                                            <label for="tipo_asignacion" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Tipo de Asignación *
-                                            </label>
-                                            <select id="tipo_asignacion" wire:model.live="tipo_asignacion"
-                                                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                                <option value="fijo">Fijo</option>
-                                                <option value="rotativo">Rotativo</option>
-                                            </select>
-                                            @error('tipo_asignacion') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                        </div>
-
-                                        {{-- Área Fija (solo si es fijo) --}}
-                                        @if ($tipo_asignacion === 'fijo')
-                                            <div>
-                                                <label for="area_fija" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                    Área Fija *
-                                                </label>
-                                                <select id="area_fija" wire:model="area_fija_id"
-                                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                                    <option value="">Seleccione un área</option>
-                                                    @foreach ($areas as $area)
-                                                        <option value="{{ $area->id }}">{{ $area->nombre }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('area_fija_id') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                            </div>
-                                        @endif
-
-                                        {{-- Años de Experiencia --}}
-                                        <div>
-                                            <label for="experiencia" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Años de Experiencia
-                                            </label>
-                                            <input type="number" id="experiencia" wire:model="anos_experiencia" min="0" max="50"
-                                                   class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                            @error('anos_experiencia') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                        </div>
-
-                                        {{-- Especialidades --}}
-                                        <div class="md:col-span-2">
-                                            <label for="especialidades" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Especialidades
-                                            </label>
-                                            <textarea id="especialidades" wire:model="especialidades" rows="2"
-                                                      class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"></textarea>
-                                            @error('especialidades') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
-                                        </div>
-                                    </div>
+                            {{-- Área Fija (solo si es fijo) --}}
+                            @if ($tipo_asignacion === 'fijo')
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Área Fija de Asignación *
+                                    </label>
+                                    <select
+                                        wire:model="area_fija_id"
+                                        class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 transition-all"
+                                    >
+                                        <option value="">Seleccione un área</option>
+                                        @foreach ($areas as $area)
+                                            <option value="{{ $area->id }}">{{ $area->nombre }} ({{ $area->codigo }})</option>
+                                        @endforeach
+                                    </select>
+                                    @error('area_fija_id')
+                                        <span class="text-red-600 text-xs">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             @endif
 
-                            {{-- Botones --}}
-                            <div class="flex gap-2 mt-6">
-                                <button type="submit"
-                                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                                    {{ $editingUserId ? 'Actualizar' : 'Crear' }} Usuario
-                                </button>
-                                <button type="button" wire:click="cancelEdit"
-                                        class="px-4 py-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-600 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-100 rounded-lg transition">
-                                    Cancelar
-                                </button>
+                            {{-- Años de Experiencia --}}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Años de Experiencia
+                                </label>
+                                <input
+                                    type="number"
+                                    wire:model="anos_experiencia"
+                                    min="0"
+                                    max="50"
+                                    placeholder="0"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                                >
+                                @error('anos_experiencia')
+                                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                                @enderror
                             </div>
-                        </form>
+
+                            {{-- Especialidades --}}
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Especialidades y Certificaciones
+                                </label>
+                                <textarea
+                                    wire:model="especialidades"
+                                    rows="2"
+                                    placeholder="Ej: Pediatría, Manejo de UCI, Reanimación Cardiopulmonar..."
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                                ></textarea>
+                                @error('especialidades')
+                                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                 @endif
 
-                {{-- Tabla de usuarios --}}
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                        <thead class="bg-slate-50 dark:bg-slate-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rol</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Datos Enfermero</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                            @forelse ($users as $user)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
-                                        {{ $user->name }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-                                        {{ $user->email }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                            @if($user->role->value === 'admin') bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300
-                                            @elseif($user->role->value === 'coordinador') bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300
-                                            @elseif($user->role->value === 'jefe_piso') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300
-                                            @elseif($user->role->value === 'enfermero') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
-                                            @else bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300
-                                            @endif">
-                                            {{ $user->role->label() }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <button wire:click="toggleActive({{ $user->id }})"
-                                                class="px-2 py-1 text-xs font-semibold rounded-full transition
-                                                    {{ $user->is_active
-                                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
-                                                        : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50' }}">
-                                            {{ $user->is_active ? 'Activo' : 'Inactivo' }}
-                                        </button>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                        @if($user->enfermero)
-                                            <div class="space-y-1">
-                                                <div><span class="font-medium">Cédula:</span> {{ $user->enfermero->cedula_profesional }}</div>
-                                                <div><span class="font-medium">Tipo:</span> {{ $user->enfermero->tipo_asignacion->label() }}</div>
-                                                @if($user->enfermero->areaFija)
-                                                    <div><span class="font-medium">Área:</span> {{ $user->enfermero->areaFija->nombre }}</div>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <span class="text-slate-400 dark:text-slate-600">N/A</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button wire:click="edit({{ $user->id }})"
-                                                class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3">
-                                            Editar
-                                        </button>
-                                        <button wire:click="delete({{ $user->id }})"
-                                                wire:confirm="¿Está seguro de eliminar este usuario?"
-                                                class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                                        No hay usuarios registrados.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                {{-- Botones --}}
+                <div class="flex gap-3 mt-6">
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
+                    >
+                        {{ $editingUserId ? 'Actualizar' : 'Crear' }} Usuario
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="cancelEdit"
+                        class="px-4 py-2 bg-slate-200 text-slate-900 font-medium rounded-md hover:bg-slate-300 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700 transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    {{-- Filtros y Búsqueda --}}
+    @if (!$showForm)
+        <div class="mb-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {{-- Búsqueda --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Buscar por nombre o email
+                    </label>
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="Escriba para buscar..."
+                        class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 transition-all"
+                    >
                 </div>
 
-                {{-- Paginación --}}
-                <div class="mt-4">
-                    {{ $users->links() }}
+                {{-- Filtro por Rol --}}
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Filtrar por Rol
+                    </label>
+                    <select
+                        wire:model.live="filterRole"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 transition-all"
+                    >
+                        <option value="">Todos los roles</option>
+                        <option value="admin">Administrador</option>
+                        <option value="coordinador">Coordinador</option>
+                        <option value="jefe_piso">Jefe de Piso</option>
+                        <option value="enfermero">Enfermero</option>
+                        <option value="jefe_capacitacion">Jefe de Capacitación</option>
+                    </select>
+                </div>
+
+                {{-- Filtro por Estado --}}
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Filtrar por Estado
+                    </label>
+                    <select
+                        wire:model.live="filterStatus"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-md text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 transition-all"
+                    >
+                        <option value="">Todos</option>
+                        <option value="active">Activos</option>
+                        <option value="inactive">Inactivos</option>
+                    </select>
                 </div>
             </div>
+
+            {{-- Limpiar Filtros --}}
+            @if ($search || $filterRole || $filterStatus)
+                <div class="mt-3">
+                    <button
+                        wire:click="clearFilters"
+                        class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                        ✕ Limpiar filtros
+                    </button>
+                </div>
+            @endif
         </div>
+    @endif
+
+    {{-- Tabla de Usuarios --}}
+    <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-slate-50 dark:bg-slate-800">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuario</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rol</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Datos de Enfermería</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                @forelse($users as $user)
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        {{-- Usuario --}}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {{ $user->name }}
+                            </span>
+                        </td>
+
+                        {{-- Email --}}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-slate-700 dark:text-slate-300">
+                                {{ $user->email }}
+                            </span>
+                        </td>
+
+                        {{-- Rol --}}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                @if($user->role->value === 'admin') bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
+                                @elseif($user->role->value === 'coordinador') bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400
+                                @elseif($user->role->value === 'jefe_piso') bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400
+                                @elseif($user->role->value === 'enfermero') bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+                                @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                                @endif">
+                                {{ $user->role->label() }}
+                            </span>
+                        </td>
+
+                        {{-- Estado --}}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button
+                                wire:click="toggleActive({{ $user->id }})"
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors
+                                    {{ $user->is_active
+                                        ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                                        : 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50' }}"
+                            >
+                                {{ $user->is_active ? 'Activo' : 'Inactivo' }}
+                            </button>
+                        </td>
+
+                        {{-- Datos de Enfermería --}}
+                        <td class="px-6 py-4">
+                            @if($user->enfermero)
+                                <div class="text-xs space-y-1">
+                                    <div>
+                                        <span class="font-medium text-slate-700 dark:text-slate-400">Cédula:</span>
+                                        <span class="text-slate-600 dark:text-slate-300">{{ $user->enfermero->cedula_profesional }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-slate-700 dark:text-slate-400">Tipo:</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                            {{ $user->enfermero->tipo_asignacion->value === 'fijo'
+                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                                : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400' }}">
+                                            {{ $user->enfermero->tipo_asignacion->label() }}
+                                        </span>
+                                    </div>
+                                    @if($user->enfermero->areaFija)
+                                        <div>
+                                            <span class="font-medium text-slate-700 dark:text-slate-400">Área Fija:</span>
+                                            <span class="text-slate-600 dark:text-slate-300">{{ $user->enfermero->areaFija->nombre }}</span>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <span class="font-medium text-slate-700 dark:text-slate-400">Experiencia:</span>
+                                        <span class="text-slate-600 dark:text-slate-300">{{ $user->enfermero->anos_experiencia }} años</span>
+                                    </div>
+                                </div>
+                            @else
+                                <span class="text-xs text-slate-400 dark:text-slate-600">N/A</span>
+                            @endif
+                        </td>
+
+                        {{-- Acciones --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button
+                                wire:click="edit({{ $user->id }})"
+                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                wire:click="delete({{ $user->id }})"
+                                wire:confirm="¿Está seguro de eliminar este usuario? {{ $user->enfermero ? 'Se eliminará también su perfil de enfermero.' : '' }}"
+                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                            @if ($search || $filterRole || $filterStatus)
+                                <div class="text-sm">
+                                    <p class="font-medium">No se encontraron resultados</p>
+                                    <p class="text-xs mt-1">Intente ajustar sus filtros de búsqueda</p>
+                                </div>
+                            @else
+                                <div class="text-sm">
+                                    <p class="font-medium">No hay usuarios registrados</p>
+                                    <p class="text-xs mt-1">Crea el primer usuario para comenzar</p>
+                                </div>
+                            @endif
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- Paginación --}}
+    <div class="mt-4">
+        {{ $users->links() }}
     </div>
 </div>

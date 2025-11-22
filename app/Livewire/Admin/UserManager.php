@@ -37,9 +37,53 @@ class UserManager extends Component
     public $editingUserId = null;
     public $areas = [];
 
+    // Filtros
+    public $filterRole = '';
+    public $filterStatus = '';
+    public $search = '';
+
     public function mount()
     {
         $this->areas = Area::orderBy('nombre')->get();
+    }
+
+    /**
+     * Mostrar formulario de creación
+     */
+    public function showCreateForm()
+    {
+        $this->resetForm();
+        $this->showForm = true;
+    }
+
+    /**
+     * Actualizar búsqueda
+     */
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Actualizar filtros
+     */
+    public function updatingFilterRole()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Limpiar filtros
+     */
+    public function clearFilters()
+    {
+        $this->reset(['filterRole', 'filterStatus', 'search']);
+        $this->resetPage();
     }
 
     public function rules()
@@ -246,10 +290,30 @@ class UserManager extends Component
 
     public function render()
     {
+        // Query base con eager loading
+        $query = User::with('enfermero.areaFija')
+            ->orderBy('created_at', 'desc');
+
+        // Aplicar búsqueda
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        // Aplicar filtro por rol
+        if (!empty($this->filterRole)) {
+            $query->where('role', $this->filterRole);
+        }
+
+        // Aplicar filtro por estado
+        if ($this->filterStatus !== '') {
+            $query->where('is_active', $this->filterStatus === 'active');
+        }
+
         return view('livewire.admin.user-manager', [
-            'users' => User::with('enfermero.areaFija')
-                ->orderBy('created_at', 'desc')
-                ->paginate(10),
+            'users' => $query->paginate(10),
         ]);
     }
 }

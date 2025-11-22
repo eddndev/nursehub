@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Area extends Model
 {
@@ -63,5 +64,18 @@ class Area extends Model
     public function rotaciones(): HasMany
     {
         return $this->hasMany(Rotacion::class);
+    }
+
+    /**
+     * Scope: Obtener áreas con el conteo de camas
+     * Esto es un scope custom ya que hasManyThrough no funciona con 3 niveles
+     */
+    public function scopeWithCamasCount($query)
+    {
+        return $query->withCount(['pisos as camas_count' => function ($query) {
+            $query->join('cuartos', 'pisos.id', '=', 'cuartos.piso_id')
+                  ->join('camas', 'cuartos.id', '=', 'camas.cuarto_id')
+                  ->select(\DB::raw('count(camas.id)'));
+        }]);
     }
 }

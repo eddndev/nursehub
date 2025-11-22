@@ -41,14 +41,30 @@ class Dashboard extends Component
             : 0;
 
         // Estadísticas de personal
-        $this->stats['total_usuarios'] = User::where('is_active', true)->count();
+        $this->stats['total_usuarios'] = User::count();
+        $this->stats['usuarios_activos'] = User::where('is_active', true)->count();
+        $this->stats['usuarios_inactivos'] = User::where('is_active', false)->count();
         $this->stats['total_enfermeros'] = Enfermero::count();
         $this->stats['enfermeros_fijos'] = Enfermero::where('tipo_asignacion', 'fijo')->count();
         $this->stats['enfermeros_rotativos'] = Enfermero::where('tipo_asignacion', 'rotativo')->count();
 
-        // Top 5 áreas por cantidad de pisos
-        $this->stats['top_areas'] = Area::withCount('pisos')
-            ->orderBy('pisos_count', 'desc')
+        // Últimos usuarios registrados (5 más recientes)
+        $this->stats['ultimos_usuarios'] = User::with('enfermero')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        // Distribución de camas por estado (para gráfico)
+        $this->stats['distribucion_camas'] = [
+            'libre' => $this->stats['camas_libres'],
+            'ocupada' => $this->stats['camas_ocupadas'],
+            'limpieza' => $this->stats['camas_limpieza'],
+            'mantenimiento' => $this->stats['camas_mantenimiento'],
+        ];
+
+        // Top 5 áreas por cantidad de camas
+        $this->stats['top_areas'] = Area::withCamasCount()
+            ->orderBy('camas_count', 'desc')
             ->take(5)
             ->get();
     }
