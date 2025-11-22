@@ -97,6 +97,6 @@ class HospitalMap extends Component
     {
         return view('livewire.hospital-map', [
             'todasAreas' => Area::orderBy('nombre')->get(),
-        ]);
+        ])->layout('layouts.admin');
     }
 }
