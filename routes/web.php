@@ -42,5 +42,16 @@ Route::middleware(['auth', 'role:admin,coordinador'])->group(function () {
     Route::get('/hospital-map', \App\Livewire\HospitalMap::class)->name('hospital.map');
 });
 
+// Rutas de Urgencias - Enfermeros, Jefes de Piso, Coordinadores y Admins
+Route::middleware(['auth', 'role:enfermero,jefe_piso,coordinador,admin'])->prefix('urgencias')->group(function () {
+    Route::get('/admision', \App\Livewire\Urgencias\AdmisionPaciente::class)->name('urgencias.admision');
+});
+
+// Rutas de Enfermería - Enfermeros, Jefes de Piso, Coordinadores y Admins
+Route::middleware(['auth', 'role:enfermero,jefe_piso,coordinador,admin'])->prefix('enfermeria')->group(function () {
+    Route::get('/pacientes', \App\Livewire\Enfermeria\ListaPacientes::class)->name('enfermeria.pacientes');
+    Route::get('/paciente/{id}', \App\Livewire\Enfermeria\ExpedientePaciente::class)->name('enfermeria.expediente');
+});
+
 require __DIR__.'/socialite.php';
 require __DIR__.'/auth.php';
