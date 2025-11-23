@@ -208,7 +208,7 @@ class AdmisionPaciente extends Component
 
             if ($this->cama_id) {
                 $cama = Cama::find($this->cama_id);
-                $cama->update(['estado' => 'ocupada']);
+                $cama->update(['estado' => CamaEstado::OCUPADA]);
 
                 HistorialPaciente::create([
                     'paciente_id' => $paciente->id,

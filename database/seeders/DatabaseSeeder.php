@@ -64,5 +64,13 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+
+        // Ejecutar seeders de infraestructura hospitalaria
+        $this->call([
+            AreaSeeder::class,
+            PisoSeeder::class,
+            CuartoSeeder::class,
+            CamaSeeder::class,
+        ]);
     }
 }

@@ -27,20 +27,12 @@ class CamaSeeder extends Seeder
 
             // Crear camas para el cuarto
             for ($i = 1; $i <= $cantidadCamas; $i++) {
-                // Determinar estado con distribución realista
-                // 60% libres, 30% ocupadas, 7% en limpieza, 3% en mantenimiento
-                $random = fake()->numberBetween(1, 100);
-                $estado = match (true) {
-                    $random <= 60 => CamaEstado::LIBRE,
-                    $random <= 90 => CamaEstado::OCUPADA,
-                    $random <= 97 => CamaEstado::EN_LIMPIEZA,
-                    default => CamaEstado::EN_MANTENIMIENTO,
-                };
-
+                // Todas las camas inician LIBRES para poder probar admisiones
+                // En producción se pueden cambiar a estados reales
                 Cama::create([
                     'cuarto_id' => $cuarto->id,
                     'numero_cama' => $cuarto->numero_cuarto . '-' . $i,
-                    'estado' => $estado,
+                    'estado' => CamaEstado::LIBRE,
                 ]);
             }
         }
