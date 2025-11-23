@@ -18,12 +18,10 @@ class CamaFactory extends Factory
      */
     public function definition(): array
     {
-        $estados = CamaEstado::cases();
-
         return [
             'cuarto_id' => Cuarto::factory(),
             'numero_cama' => fake()->unique()->numerify('C-###'),
-            'estado' => fake()->randomElement($estados),
+            'estado' => CamaEstado::LIBRE, // Por defecto libre para testing
         ];
     }
 

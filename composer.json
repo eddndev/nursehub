@@ -11,6 +11,7 @@
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-medialibrary": "^11.15"
     },
     "require-dev": {
