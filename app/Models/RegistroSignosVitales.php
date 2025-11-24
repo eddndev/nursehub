@@ -11,6 +11,8 @@ class RegistroSignosVitales extends Model
 {
     use HasFactory;
 
+    protected $table = 'registros_signos_vitales';
+
     protected $fillable = [
         'paciente_id',
         'registrado_por',

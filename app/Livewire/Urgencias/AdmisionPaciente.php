@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Urgencias;
 
+use App\Enums\CamaEstado;
 use App\Enums\TipoEventoHistorial;
 use App\Models\Cama;
 use App\Models\HistorialPaciente;
@@ -51,10 +52,10 @@ class AdmisionPaciente extends Component
     #[Validate('nullable|exists:camas,id')]
     public $cama_id = null;
 
-    #[Validate('nullable|numeric|min:50|max:250')]
+    #[Validate('nullable|numeric|min:50|max:250|required_with:presion_arterial_diastolica')]
     public $presion_arterial_sistolica = null;
 
-    #[Validate('nullable|numeric|min:30|max:150')]
+    #[Validate('nullable|numeric|min:30|max:150|required_with:presion_arterial_sistolica')]
     public $presion_arterial_diastolica = null;
 
     #[Validate('nullable|integer|min:30|max:200')]
@@ -139,6 +140,14 @@ class AdmisionPaciente extends Component
     public function admitir()
     {
         $this->validate();
+
+        if ($this->cama_id) {
+            $camaCheck = Cama::find($this->cama_id);
+            if ($camaCheck && $camaCheck->estado === CamaEstado::OCUPADA) {
+                $this->addError('cama_id', 'La cama seleccionada ya está ocupada.');
+                return;
+            }
+        }
 
         DB::transaction(function () {
             $codigoQR = QRCodeGenerator::generarCodigoPaciente();

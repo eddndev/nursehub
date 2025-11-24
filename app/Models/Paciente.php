@@ -26,6 +26,7 @@ class Paciente extends Model
         'contacto_emergencia_telefono',
         'alergias',
         'antecedentes_medicos',
+        'meta_balance_hidrico',
         'estado',
         'cama_actual_id',
         'admitido_por',

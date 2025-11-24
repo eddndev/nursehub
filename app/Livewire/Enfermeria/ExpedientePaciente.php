@@ -9,6 +9,7 @@ use Livewire\Component;
 class ExpedientePaciente extends Component
 {
     public Paciente $paciente;
+    public $activeTab = 'general';
 
     public function mount($id)
     {

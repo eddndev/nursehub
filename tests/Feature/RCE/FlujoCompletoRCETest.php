@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\RCE;
 
+use App\Enums\CamaEstado;
 use App\Enums\EstadoPaciente;
 use App\Enums\NivelTriage;
 use App\Models\Area;
@@ -50,12 +51,11 @@ class FlujoCompletoRCETest extends TestCase
         $this->cama = Cama::factory()->create([
             'cuarto_id' => $this->cuarto->id,
             'numero' => 'A',
-            'disponible' => true,
+            'estado' => CamaEstado::LIBRE,
         ]);
     }
 
-    /** @test */
-    public function flujo_completo_admision_paciente_critico()
+    public function test_flujo_completo_admision_paciente_critico()
     {
         // PASO 1: Enfermera accede al sistema de admisión
         $response = $this->actingAs($this->enfermera)
@@ -132,7 +132,7 @@ class FlujoCompletoRCETest extends TestCase
         ]);
 
         // Marcar cama como ocupada
-        $this->cama->update(['disponible' => false]);
+        $this->cama->update(['estado' => CamaEstado::OCUPADA]);
 
         // PASO 3: Verificar que el paciente fue creado correctamente
         $this->assertDatabaseHas('pacientes', [
@@ -153,7 +153,7 @@ class FlujoCompletoRCETest extends TestCase
         ]);
 
         // PASO 5: Verificar que la cama quedó ocupada
-        $this->assertFalse($this->cama->fresh()->disponible);
+        $this->assertEquals(CamaEstado::OCUPADA, $this->cama->fresh()->estado);
 
         // PASO 6: Verificar que se creó entrada en el historial
         $this->assertDatabaseHas('historial_pacientes', [
@@ -302,8 +302,7 @@ class FlujoCompletoRCETest extends TestCase
         );
     }
 
-    /** @test */
-    public function flujo_completo_paciente_no_urgente()
+    public function test_flujo_completo_paciente_no_urgente()
     {
         // Paciente con signos vitales normales
         $paciente = Paciente::factory()->create([
@@ -339,8 +338,7 @@ class FlujoCompletoRCETest extends TestCase
             ->assertSee('Verde - Menos Urgente');
     }
 
-    /** @test */
-    public function flujo_busqueda_y_filtrado()
+    public function test_flujo_busqueda_y_filtrado()
     {
         // Crear múltiples pacientes
         $paciente1 = Paciente::factory()->create([
@@ -370,8 +368,7 @@ class FlujoCompletoRCETest extends TestCase
             ->assertDontSee('Ana López'); // Porque está de alta
     }
 
-    /** @test */
-    public function flujo_multiples_enfermeras()
+    public function test_flujo_multiples_enfermeras()
     {
         $enfermera2 = User::factory()->create(['name' => 'Enfermera 2']);
 
