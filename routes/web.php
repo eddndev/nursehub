@@ -51,6 +51,13 @@ Route::middleware(['auth', 'role:enfermero,jefe_piso,coordinador,admin'])->prefi
 Route::middleware(['auth', 'role:enfermero,jefe_piso,coordinador,admin'])->prefix('enfermeria')->group(function () {
     Route::get('/pacientes', \App\Livewire\Enfermeria\ListaPacientes::class)->name('enfermeria.pacientes');
     Route::get('/paciente/{id}', \App\Livewire\Enfermeria\ExpedientePaciente::class)->name('enfermeria.expediente');
+    Route::get('/mis-asignaciones', \App\Livewire\MisAsignaciones::class)->name('enfermeria.mis-asignaciones');
+});
+
+// Rutas de Gestión de Turnos - Jefes de Piso, Coordinadores y Admins
+Route::middleware(['auth', 'role:jefe_piso,coordinador,admin'])->prefix('turnos')->group(function () {
+    Route::get('/gestor', \App\Livewire\GestorTurnos::class)->name('turnos.gestor');
+    Route::get('/relevo', \App\Livewire\RelevoTurno::class)->name('turnos.relevo');
 });
 
 require __DIR__.'/socialite.php';
