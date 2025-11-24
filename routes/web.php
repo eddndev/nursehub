@@ -60,5 +60,29 @@ Route::middleware(['auth', 'role:jefe_piso,coordinador,admin'])->prefix('turnos'
     Route::get('/relevo', \App\Livewire\RelevoTurno::class)->name('turnos.relevo');
 });
 
+// Rutas de Capacitación - Coordinadores y Admins
+Route::middleware(['auth', 'role:coordinador,admin'])->prefix('capacitacion')->group(function () {
+    Route::get('/actividades', \App\Livewire\Capacitacion\GestorActividades::class)->name('capacitacion.actividades');
+    Route::get('/inscripciones/{actividadId}', \App\Livewire\Capacitacion\GestorInscripciones::class)->name('capacitacion.inscripciones');
+    Route::get('/asistencia/{actividadId}/{sesionId}', \App\Livewire\Capacitacion\ControlAsistencia::class)->name('capacitacion.asistencia');
+    Route::get('/aprobaciones/{actividadId}', \App\Livewire\Capacitacion\GestorAprobaciones::class)->name('capacitacion.aprobaciones');
+    Route::get('/reportes', \App\Livewire\Capacitacion\ReportesCapacitacion::class)->name('capacitacion.reportes');
+});
+
+// Rutas de Capacitación - Enfermeros
+Route::middleware(['auth', 'role:enfermero,jefe_piso,coordinador,admin'])->prefix('capacitacion')->group(function () {
+    Route::get('/dashboard', \App\Livewire\Capacitacion\DashboardCapacitacion::class)->name('capacitacion.dashboard');
+    Route::get('/certificacion/{certificacionId}/pdf', function ($certificacionId) {
+        $certificacion = \App\Models\Certificacion::findOrFail($certificacionId);
+        $service = new \App\Services\CertificacionPDFService();
+        return $service->visualizarPDF($certificacion);
+    })->name('capacitacion.certificacion.pdf');
+});
+
+// Rutas de Capacitación - Jefes de Piso
+Route::middleware(['auth', 'role:jefe_piso,coordinador,admin'])->prefix('capacitacion')->group(function () {
+    Route::get('/calendario', \App\Livewire\Capacitacion\CalendarioCapacitaciones::class)->name('capacitacion.calendario');
+});
+
 require __DIR__.'/socialite.php';
 require __DIR__.'/auth.php';

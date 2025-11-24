@@ -7,7 +7,9 @@
       "Bash(gh issue edit:*)",
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh issue list:*)",
+      "Bash(NUL)"
     ]
   },
   "outputStyle": "default"
