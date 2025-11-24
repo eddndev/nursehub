@@ -6,6 +6,7 @@ use App\Enums\TipoAsignacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Enfermero extends Model
 {
@@ -61,6 +62,14 @@ class Enfermero extends Model
     public function areaFija(): BelongsTo
     {
         return $this->belongsTo(Area::class, 'area_fija_id');
+    }
+
+    /**
+     * Relación: Un enfermero tiene muchas asignaciones de pacientes
+     */
+    public function asignaciones(): HasMany
+    {
+        return $this->hasMany(AsignacionPaciente::class);
     }
 
     /**

@@ -64,6 +64,18 @@ class Paciente extends Model
         return $this->hasMany(HistorialPaciente::class);
     }
 
+    public function asignaciones(): HasMany
+    {
+        return $this->hasMany(AsignacionPaciente::class);
+    }
+
+    public function asignacionActual()
+    {
+        return $this->hasOne(AsignacionPaciente::class)
+            ->whereNull('fecha_hora_liberacion')
+            ->latest('fecha_hora_asignacion');
+    }
+
     public function getNombreCompletoAttribute(): string
     {
         return trim("{$this->nombre} {$this->apellido_paterno} {$this->apellido_materno}");
