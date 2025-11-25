@@ -42,23 +42,20 @@ class ExpedientePacienteTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function puede_acceder_a_expediente_de_paciente()
+    public function test_puede_acceder_a_expediente_de_paciente()
     {
         $this->actingAs($this->user)
             ->get(route('enfermeria.expediente', $this->paciente->id))
             ->assertOk();
     }
 
-    /** @test */
-    public function guest_no_puede_acceder_a_expediente()
+    public function test_guest_no_puede_acceder_a_expediente()
     {
         $this->get(route('enfermeria.expediente', $this->paciente->id))
             ->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function componente_carga_correctamente()
+    public function test_componente_carga_correctamente()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
@@ -66,8 +63,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSet('paciente.id', $this->paciente->id);
     }
 
-    /** @test */
-    public function muestra_informacion_basica_del_paciente()
+    public function test_muestra_informacion_basica_del_paciente()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
@@ -75,16 +71,14 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee($this->paciente->codigo_qr);
     }
 
-    /** @test */
-    public function muestra_edad_del_paciente()
+    public function test_muestra_edad_del_paciente()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
             ->assertSee($this->paciente->edad . ' años');
     }
 
-    /** @test */
-    public function muestra_ubicacion_actual()
+    public function test_muestra_ubicacion_actual()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
@@ -94,8 +88,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('Cama A');
     }
 
-    /** @test */
-    public function muestra_alergias_si_existen()
+    public function test_muestra_alergias_si_existen()
     {
         $this->paciente->update(['alergias' => 'Penicilina, Polen']);
 
@@ -105,8 +98,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('Penicilina, Polen');
     }
 
-    /** @test */
-    public function muestra_antecedentes_medicos_si_existen()
+    public function test_muestra_antecedentes_medicos_si_existen()
     {
         $this->paciente->update(['antecedentes_medicos' => 'Hipertensión']);
 
@@ -116,8 +108,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('Hipertensión');
     }
 
-    /** @test */
-    public function muestra_ultimo_registro_de_signos_vitales()
+    public function test_muestra_ultimo_registro_de_signos_vitales()
     {
         RegistroSignosVitales::factory()->create([
             'paciente_id' => $this->paciente->id,
@@ -135,16 +126,14 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('36.5');
     }
 
-    /** @test */
-    public function muestra_mensaje_cuando_no_hay_signos_vitales()
+    public function test_muestra_mensaje_cuando_no_hay_signos_vitales()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
             ->assertSee('No hay registros de signos vitales');
     }
 
-    /** @test */
-    public function muestra_historial_del_paciente()
+    public function test_muestra_historial_del_paciente()
     {
         $this->paciente->historial()->create([
             'tipo_evento' => 'Admisión',
@@ -158,24 +147,21 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('Paciente admitido en urgencias');
     }
 
-    /** @test */
-    public function muestra_quien_admitio_al_paciente()
+    public function test_muestra_quien_admitio_al_paciente()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
             ->assertSee($this->user->name);
     }
 
-    /** @test */
-    public function muestra_estado_del_paciente()
+    public function test_muestra_estado_del_paciente()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
             ->assertSee($this->paciente->estado->getLabel());
     }
 
-    /** @test */
-    public function carga_relaciones_necesarias_eficientemente()
+    public function test_carga_relaciones_necesarias_eficientemente()
     {
         // Crear datos relacionados
         RegistroSignosVitales::factory()->count(3)->create([
@@ -202,8 +188,7 @@ class ExpedientePacienteTest extends TestCase
         $this->assertTrue($paciente->relationLoaded('admitidoPor'));
     }
 
-    /** @test */
-    public function se_actualiza_cuando_se_registran_signos_vitales()
+    public function test_se_actualiza_cuando_se_registran_signos_vitales()
     {
         $component = Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id]);
@@ -225,24 +210,21 @@ class ExpedientePacienteTest extends TestCase
         $this->assertCount(1, $paciente->registrosSignosVitales);
     }
 
-    /** @test */
-    public function boton_volver_redirige_a_lista_pacientes()
+    public function test_boton_volver_redirige_a_lista_pacientes()
     {
         $this->actingAs($this->user)
             ->get(route('enfermeria.expediente', $this->paciente->id))
             ->assertSee(route('enfermeria.pacientes'));
     }
 
-    /** @test */
-    public function muestra_fecha_de_admision()
+    public function test_muestra_fecha_de_admision()
     {
         Livewire::actingAs($this->user)
             ->test(ExpedientePaciente::class, ['id' => $this->paciente->id])
             ->assertSee($this->paciente->fecha_admision->format('d/m/Y'));
     }
 
-    /** @test */
-    public function muestra_contacto_de_emergencia_si_existe()
+    public function test_muestra_contacto_de_emergencia_si_existe()
     {
         $this->paciente->update([
             'contacto_emergencia_nombre' => 'María García',
@@ -255,8 +237,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('5551234567');
     }
 
-    /** @test */
-    public function muestra_curp_si_existe()
+    public function test_muestra_curp_si_existe()
     {
         $this->paciente->update(['curp' => 'PEGG900515HDFRRC09']);
 
@@ -265,8 +246,7 @@ class ExpedientePacienteTest extends TestCase
             ->assertSee('PEGG900515HDFRRC09');
     }
 
-    /** @test */
-    public function error_404_si_paciente_no_existe()
+    public function test_error_404_si_paciente_no_existe()
     {
         $this->actingAs($this->user)
             ->get(route('enfermeria.expediente', 99999))

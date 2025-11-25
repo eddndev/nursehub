@@ -37,23 +37,20 @@ class ListaPacientesTest extends TestCase
         $this->cama = Cama::factory()->create(['cuarto_id' => $this->cuarto->id]);
     }
 
-    /** @test */
-    public function puede_acceder_a_lista_de_pacientes()
+    public function test_puede_acceder_a_lista_de_pacientes()
     {
         $this->actingAs($this->user)
             ->get(route('enfermeria.pacientes'))
             ->assertOk();
     }
 
-    /** @test */
-    public function guest_no_puede_acceder_a_lista()
+    public function test_guest_no_puede_acceder_a_lista()
     {
         $this->get(route('enfermeria.pacientes'))
             ->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function componente_carga_correctamente()
+    public function test_componente_carga_correctamente()
     {
         Livewire::actingAs($this->user)
             ->test(ListaPacientes::class)
@@ -61,8 +58,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Lista de Pacientes');
     }
 
-    /** @test */
-    public function muestra_pacientes_activos()
+    public function test_muestra_pacientes_activos()
     {
         Paciente::factory()->create([
             'nombre' => 'Juan',
@@ -77,8 +73,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Juan Pérez');
     }
 
-    /** @test */
-    public function puede_buscar_por_nombre()
+    public function test_puede_buscar_por_nombre()
     {
         Paciente::factory()->create([
             'nombre' => 'María',
@@ -101,8 +96,7 @@ class ListaPacientesTest extends TestCase
             ->assertDontSee('Carlos García');
     }
 
-    /** @test */
-    public function puede_buscar_por_codigo_qr()
+    public function test_puede_buscar_por_codigo_qr()
     {
         $paciente = Paciente::factory()->create([
             'nombre' => 'Ana',
@@ -117,8 +111,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Ana');
     }
 
-    /** @test */
-    public function puede_buscar_por_curp()
+    public function test_puede_buscar_por_curp()
     {
         Paciente::factory()->create([
             'nombre' => 'Pedro',
@@ -133,8 +126,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Pedro');
     }
 
-    /** @test */
-    public function puede_filtrar_por_nivel_triage()
+    public function test_puede_filtrar_por_nivel_triage()
     {
         $paciente1 = Paciente::factory()->create([
             'nombre' => 'Urgente',
@@ -158,6 +150,7 @@ class ListaPacientesTest extends TestCase
             'paciente_id' => $paciente2->id,
             'nivel_triage' => NivelTriage::VERDE,
             'registrado_por' => $this->user->id,
+            'fecha_registro' => now(),
         ]);
 
         Livewire::actingAs($this->user)
@@ -167,8 +160,7 @@ class ListaPacientesTest extends TestCase
             ->assertDontSee('NoUrgente');
     }
 
-    /** @test */
-    public function puede_filtrar_por_estado()
+    public function test_puede_filtrar_por_estado()
     {
         Paciente::factory()->create([
             'nombre' => 'Activo',
@@ -191,8 +183,7 @@ class ListaPacientesTest extends TestCase
             ->assertDontSee('Alta');
     }
 
-    /** @test */
-    public function ordena_por_prioridad_triage()
+    public function test_ordena_por_prioridad_triage()
     {
         // Crear pacientes con diferentes niveles de TRIAGE
         $pacienteVerde = Paciente::factory()->create([
@@ -229,8 +220,7 @@ class ListaPacientesTest extends TestCase
         $this->assertEquals('Rojo', $html[0]->nombre);
     }
 
-    /** @test */
-    public function muestra_estadisticas_de_pacientes()
+    public function test_muestra_estadisticas_de_pacientes()
     {
         Paciente::factory()->count(3)->create([
             'estado' => EstadoPaciente::ACTIVO,
@@ -250,8 +240,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Activos: 3');
     }
 
-    /** @test */
-    public function muestra_nivel_triage_con_colores()
+    public function test_muestra_nivel_triage_con_colores()
     {
         $paciente = Paciente::factory()->create([
             'nombre' => 'Test',
@@ -270,8 +259,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Rojo - Resucitación');
     }
 
-    /** @test */
-    public function muestra_indicador_de_triage_override()
+    public function test_muestra_indicador_de_triage_override()
     {
         $paciente = Paciente::factory()->create([
             'cama_actual_id' => $this->cama->id,
@@ -290,8 +278,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('TRIAGE modificado manualmente');
     }
 
-    /** @test */
-    public function muestra_ubicacion_del_paciente()
+    public function test_muestra_ubicacion_del_paciente()
     {
         $this->area->update(['nombre' => 'Urgencias']);
         $this->piso->update(['nombre' => 'Piso 1']);
@@ -312,8 +299,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('A');
     }
 
-    /** @test */
-    public function muestra_signos_vitales_recientes()
+    public function test_muestra_signos_vitales_recientes()
     {
         $paciente = Paciente::factory()->create([
             'cama_actual_id' => $this->cama->id,
@@ -336,8 +322,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('36.5');
     }
 
-    /** @test */
-    public function paginacion_funciona_correctamente()
+    public function test_paginacion_funciona_correctamente()
     {
         Paciente::factory()->count(25)->create([
             'cama_actual_id' => $this->cama->id,
@@ -351,8 +336,7 @@ class ListaPacientesTest extends TestCase
         $this->assertCount(20, $component->get('pacientes')->items());
     }
 
-    /** @test */
-    public function resetea_paginacion_al_buscar()
+    public function test_resetea_paginacion_al_buscar()
     {
         Paciente::factory()->count(25)->create([
             'cama_actual_id' => $this->cama->id,
@@ -372,8 +356,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('Especial');
     }
 
-    /** @test */
-    public function enlace_a_expediente_funciona()
+    public function test_enlace_a_expediente_funciona()
     {
         $paciente = Paciente::factory()->create([
             'cama_actual_id' => $this->cama->id,
@@ -385,8 +368,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee(route('enfermeria.expediente', $paciente->id));
     }
 
-    /** @test */
-    public function muestra_tiempo_desde_admision()
+    public function test_muestra_tiempo_desde_admision()
     {
         Paciente::factory()->create([
             'nombre' => 'Reciente',
@@ -400,8 +382,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee('hace 2 horas');
     }
 
-    /** @test */
-    public function parametros_url_persisten_filtros()
+    public function test_parametros_url_persisten_filtros()
     {
         $component = Livewire::actingAs($this->user)
             ->test(ListaPacientes::class)
@@ -413,8 +394,7 @@ class ListaPacientesTest extends TestCase
         $this->assertEquals(NivelTriage::ROJO->value, $component->get('filtroTriage'));
     }
 
-    /** @test */
-    public function boton_admitir_paciente_visible()
+    public function test_boton_admitir_paciente_visible()
     {
         $this->actingAs($this->user)
             ->get(route('enfermeria.pacientes'))
@@ -422,8 +402,7 @@ class ListaPacientesTest extends TestCase
             ->assertSee(route('urgencias.admision'));
     }
 
-    /** @test */
-    public function mensaje_cuando_no_hay_pacientes()
+    public function test_mensaje_cuando_no_hay_pacientes()
     {
         Livewire::actingAs($this->user)
             ->test(ListaPacientes::class)

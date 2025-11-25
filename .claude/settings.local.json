@@ -7,7 +7,12 @@
       "Bash(gh issue edit:*)",
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh issue list:*)",
+      "Bash(NUL)",
+      "Bash(gh label list:*)",
+      "Bash(if not exist \"C:\\apache\\htdocs\\nursehub\\app\\Exports\" mkdir \"C:\\apache\\htdocs\\nursehub\\app\\Exports\")",
+      "Bash(php -l:*)"
     ]
   },
   "outputStyle": "default"

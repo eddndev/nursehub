@@ -26,6 +26,7 @@ class Paciente extends Model
         'contacto_emergencia_telefono',
         'alergias',
         'antecedentes_medicos',
+        'meta_balance_hidrico',
         'estado',
         'cama_actual_id',
         'admitido_por',
@@ -61,6 +62,18 @@ class Paciente extends Model
     public function historial(): HasMany
     {
         return $this->hasMany(HistorialPaciente::class);
+    }
+
+    public function asignaciones(): HasMany
+    {
+        return $this->hasMany(AsignacionPaciente::class);
+    }
+
+    public function asignacionActual()
+    {
+        return $this->hasOne(AsignacionPaciente::class)
+            ->whereNull('fecha_hora_liberacion')
+            ->latest('fecha_hora_asignacion');
     }
 
     public function getNombreCompletoAttribute(): string

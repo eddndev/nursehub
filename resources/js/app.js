@@ -1,5 +1,11 @@
 import './bootstrap';
 import { gsap } from 'gsap';
+import Chart from 'chart.js/auto';
+import Swal from 'sweetalert2';
+
+// Expose Chart.js and SweetAlert2 globally
+window.Chart = Chart;
+window.Swal = Swal;
 
 // ========================================
 // NurseHub Theme Toggle System
