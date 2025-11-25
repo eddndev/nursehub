@@ -84,5 +84,19 @@ Route::middleware(['auth', 'role:jefe_piso,coordinador,admin'])->prefix('capacit
     Route::get('/calendario', \App\Livewire\Capacitacion\CalendarioCapacitaciones::class)->name('capacitacion.calendario');
 });
 
+// Rutas de Farmacia - Catálogo e Inventario (Farmacéuticos, Coordinadores, Admins)
+Route::middleware(['auth', 'role:farmaceutico,coordinador,admin'])->prefix('medicamentos')->group(function () {
+    Route::get('/catalogo', \App\Livewire\Medicamentos\CatalogoMedicamentos::class)->name('medicamentos.catalogo');
+    Route::get('/inventario', \App\Livewire\Medicamentos\GestorInventario::class)->name('medicamentos.inventario');
+    Route::get('/despacho', \App\Livewire\Medicamentos\DespachoFarmacia::class)->name('medicamentos.despacho');
+    Route::get('/reportes', \App\Livewire\Medicamentos\ReportesFarmacia::class)->name('medicamentos.reportes');
+});
+
+// Rutas de Farmacia - Solicitudes (Enfermeros, Jefes de Piso, Farmacéuticos, Coordinadores, Admins)
+Route::middleware(['auth', 'role:enfermero,jefe_piso,farmaceutico,coordinador,admin'])->prefix('medicamentos')->group(function () {
+    Route::get('/solicitudes', \App\Livewire\Medicamentos\SolicitudesMedicamentos::class)->name('medicamentos.solicitudes');
+    Route::get('/administrar', \App\Livewire\Medicamentos\AdministracionMedicamentos::class)->name('medicamentos.administrar');
+});
+
 require __DIR__.'/socialite.php';
 require __DIR__.'/auth.php';
