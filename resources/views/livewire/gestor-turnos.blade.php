@@ -82,14 +82,17 @@
                     <div class="px-4 py-5 sm:p-6">
                         <ul role="list" class="divide-y divide-gray-200">
                             @forelse ($this->enfermeros as $enfermero)
-                                <li class="py-4">
+                                <li class="py-4 {{ $enfermero->en_capacitacion_ahora ? 'bg-yellow-50' : '' }}">
                                     <div class="flex items-center space-x-4">
-                                        <div class="flex-shrink-0">
-                                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                                <span class="text-indigo-600 font-medium text-sm">
+                                        <div class="flex-shrink-0 relative">
+                                            <div class="h-10 w-10 rounded-full {{ $enfermero->en_capacitacion_ahora ? 'bg-yellow-100' : 'bg-indigo-100' }} flex items-center justify-center">
+                                                <span class="{{ $enfermero->en_capacitacion_ahora ? 'text-yellow-600' : 'text-indigo-600' }} font-medium text-sm">
                                                     {{ strtoupper(substr($enfermero->user->name, 0, 2)) }}
                                                 </span>
                                             </div>
+                                            @if ($enfermero->en_capacitacion_ahora)
+                                                <span class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-yellow-400 border-2 border-white" title="En capacitación ahora"></span>
+                                            @endif
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-medium text-gray-900 truncate">
@@ -98,11 +101,35 @@
                                             <p class="text-sm text-gray-500 truncate">
                                                 {{ $enfermero->cedula_profesional }}
                                             </p>
+                                            @if ($enfermero->en_capacitacion)
+                                                <div class="mt-1">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                        </svg>
+                                                        En Capacitación
+                                                    </span>
+                                                </div>
+                                                @if ($enfermero->proximas_sesiones && $enfermero->proximas_sesiones->count() > 0)
+                                                    <div class="mt-1 text-xs text-gray-500" title="Próximas sesiones">
+                                                        @foreach ($enfermero->proximas_sesiones->take(2) as $sesion)
+                                                            <span class="block">
+                                                                {{ $sesion->fecha->format('d/m') }} {{ $sesion->hora_inicio }}-{{ $sesion->hora_fin }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            @endif
                                         </div>
-                                        <div>
+                                        <div class="flex flex-col items-end space-y-1">
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {{ $enfermero->pacientes_asignados }} pacientes
                                             </span>
+                                            @if ($enfermero->en_capacitacion_ahora)
+                                                <span class="text-xs text-yellow-600 font-medium">
+                                                    ⚠️ No disponible
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 </li>
@@ -289,13 +316,37 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 <option value="">Seleccione un enfermero</option>
                                 @foreach ($this->enfermeros as $enfermero)
-                                    <option value="{{ $enfermero->id }}">
+                                    <option value="{{ $enfermero->id }}" {{ $enfermero->en_capacitacion_ahora ? 'class=bg-yellow-100' : '' }}>
                                         {{ $enfermero->user->name }} ({{ $enfermero->pacientes_asignados }} pacientes)
+                                        @if ($enfermero->en_capacitacion)
+                                            📚 En Capacitación
+                                        @endif
+                                        @if ($enfermero->en_capacitacion_ahora)
+                                            ⚠️ AHORA
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
                             @error('enfermeroSeleccionado') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
                         </div>
+                        {{-- Aviso de enfermeros en capacitación --}}
+                        @if ($this->enfermeros->where('en_capacitacion', true)->count() > 0)
+                            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">Enfermeros con capacitación activa</h3>
+                                        <p class="mt-1 text-xs text-yellow-700">
+                                            Algunos enfermeros tienen sesiones de capacitación programadas. El sistema validará automáticamente los conflictos de horario.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button wire:click="asignarPaciente" type="button"
@@ -327,13 +378,37 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 <option value="">Seleccione un enfermero</option>
                                 @foreach ($this->enfermeros as $enfermero)
-                                    <option value="{{ $enfermero->id }}">
+                                    <option value="{{ $enfermero->id }}" {{ $enfermero->en_capacitacion_ahora ? 'class=bg-yellow-100' : '' }}>
                                         {{ $enfermero->user->name }} ({{ $enfermero->pacientes_asignados }} pacientes)
+                                        @if ($enfermero->en_capacitacion)
+                                            📚 En Capacitación
+                                        @endif
+                                        @if ($enfermero->en_capacitacion_ahora)
+                                            ⚠️ AHORA
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
                             @error('nuevoEnfermero') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
                         </div>
+                        {{-- Aviso de enfermeros en capacitación --}}
+                        @if ($this->enfermeros->where('en_capacitacion', true)->count() > 0)
+                            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">Enfermeros con capacitación activa</h3>
+                                        <p class="mt-1 text-xs text-yellow-700">
+                                            Algunos enfermeros tienen sesiones de capacitación programadas. El sistema validará automáticamente los conflictos de horario.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button wire:click="reasignarPaciente" type="button"

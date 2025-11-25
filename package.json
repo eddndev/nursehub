@@ -19,6 +19,8 @@
     },
     "dependencies": {
         "@tailwindplus/elements": "^1.0.16",
-        "gsap": "^3.13.0"
+        "chart.js": "^4.5.1",
+        "gsap": "^3.13.0",
+        "sweetalert2": "^11.26.3"
     }
 }

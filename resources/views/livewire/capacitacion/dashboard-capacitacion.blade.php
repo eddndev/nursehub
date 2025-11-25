@@ -201,12 +201,20 @@
                                 </svg>
                                 {{ $actividad->duracion_horas }} horas
                             </div>
-                            @if($inscripcion->calificacion_final)
-                                <div class="flex items-center text-sm text-gray-600">
+                            @if($inscripcion->calificacion_obtenida)
+                                <div class="flex items-center text-sm">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                     </svg>
-                                    Calificación: {{ $inscripcion->calificacion_final }}
+                                    <span class="font-bold {{ $inscripcion->cumpleCalificacionMinima() ? 'text-green-600' : 'text-amber-600' }}">
+                                        Calificación: {{ number_format($inscripcion->calificacion_obtenida, 1) }}%
+                                    </span>
+                                </div>
+                            @endif
+                            @if($inscripcion->retroalimentacion)
+                                <div class="mt-2 p-2 bg-blue-50 rounded-md">
+                                    <p class="text-xs text-blue-800 font-medium">Retroalimentación:</p>
+                                    <p class="text-xs text-blue-700">{{ Str::limit($inscripcion->retroalimentacion, 100) }}</p>
                                 </div>
                             @endif
                         </div>
@@ -420,6 +428,36 @@
                 <div class="p-6">
                     <h2 class="text-xl font-bold text-gray-900 mb-4">Confirmar Inscripción</h2>
 
+                    {{-- Alerta de conflictos --}}
+                    @if(count($conflictosDetectados) > 0)
+                        <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-md">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800">Conflictos de horario detectados</h3>
+                                    <div class="mt-2 text-sm text-yellow-700">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            @foreach($conflictosDetectados as $conflicto)
+                                                <li>{{ $conflicto['mensaje'] }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" wire:model="confirmarConConflictos"
+                                                class="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500">
+                                            <span class="ml-2 text-sm text-yellow-800">Entiendo los conflictos y deseo continuar con la inscripción</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones (opcional)</label>
                         <textarea wire:model="observacionesInscripcion" rows="3"
@@ -440,8 +478,9 @@
                             Cancelar
                         </button>
                         <button wire:click="inscribirse"
-                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
-                            Confirmar Inscripción
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white {{ count($conflictosDetectados) > 0 && !$confirmarConConflictos ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }} rounded-md"
+                            @if(count($conflictosDetectados) > 0 && !$confirmarConConflictos) disabled @endif>
+                            {{ count($conflictosDetectados) > 0 ? 'Inscribirme de todos modos' : 'Confirmar Inscripción' }}
                         </button>
                     </div>
                 </div>

@@ -10,6 +10,7 @@ use App\Models\AsignacionPaciente;
 use App\Models\Enfermero;
 use App\Models\Paciente;
 use App\Models\Turno;
+use App\Services\ConflictoHorarioService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -102,6 +103,8 @@ class GestorTurnos extends Component
             return collect();
         }
 
+        $conflictoService = app(ConflictoHorarioService::class);
+
         // Enfermeros fijos del área o rotativos
         return Enfermero::with('user')
             ->where(function ($query) {
@@ -109,13 +112,19 @@ class GestorTurnos extends Component
                     ->orWhere('tipo_asignacion', TipoAsignacion::ROTATIVO);
             })
             ->get()
-            ->map(function ($enfermero) {
+            ->map(function ($enfermero) use ($conflictoService) {
                 $enfermero->pacientes_asignados = $this->turnoActualId
                     ? AsignacionPaciente::activas()
                         ->porTurno($this->turnoActualId)
                         ->porEnfermero($enfermero->id)
                         ->count()
                     : 0;
+
+                // Agregar información de capacitación
+                $enfermero->en_capacitacion = $conflictoService->tieneCapacitacionesActivas($enfermero->id);
+                $enfermero->en_capacitacion_ahora = $conflictoService->estaEnCapacitacion($enfermero->id);
+                $enfermero->proximas_sesiones = $conflictoService->obtenerProximasSesiones($enfermero->id, 3);
+
                 return $enfermero;
             });
     }
@@ -234,6 +243,29 @@ class GestorTurnos extends Component
             'pacienteSeleccionado' => 'required|exists:pacientes,id',
         ]);
 
+        // Validar conflictos con capacitación
+        $conflictoService = app(ConflictoHorarioService::class);
+        $turno = Turno::find($this->turnoActualId);
+        $enfermero = Enfermero::with('user')->find($this->enfermeroSeleccionado);
+
+        $conflictos = $conflictoService->verificarConflictoParaTurno(
+            $this->enfermeroSeleccionado,
+            $turno->fecha,
+            $turno->hora_inicio,
+            $turno->hora_fin
+        );
+
+        if (!empty($conflictos)) {
+            $conflicto = $conflictos[0];
+            $this->dispatch('error', mensaje:
+                "No se puede asignar. {$enfermero->user->name} está inscrito en capacitación:\n" .
+                "📚 {$conflicto['actividad']->titulo}\n" .
+                "📅 Sesión {$conflicto['entidad']->numero_sesion}: {$conflicto['entidad']->fecha->format('d/m/Y')} " .
+                "{$conflicto['entidad']->hora_inicio}-{$conflicto['entidad']->hora_fin}"
+            );
+            return;
+        }
+
         try {
             DB::transaction(function () {
                 // Liberar asignación anterior si existe
@@ -283,6 +315,29 @@ class GestorTurnos extends Component
         $this->validate([
             'nuevoEnfermero' => 'required|exists:enfermeros,id',
         ]);
+
+        // Validar conflictos con capacitación
+        $conflictoService = app(ConflictoHorarioService::class);
+        $turno = Turno::find($this->turnoActualId);
+        $enfermero = Enfermero::with('user')->find($this->nuevoEnfermero);
+
+        $conflictos = $conflictoService->verificarConflictoParaTurno(
+            $this->nuevoEnfermero,
+            $turno->fecha,
+            $turno->hora_inicio,
+            $turno->hora_fin
+        );
+
+        if (!empty($conflictos)) {
+            $conflicto = $conflictos[0];
+            $this->dispatch('error', mensaje:
+                "No se puede reasignar. {$enfermero->user->name} está inscrito en capacitación:\n" .
+                "📚 {$conflicto['actividad']->titulo}\n" .
+                "📅 Sesión {$conflicto['entidad']->numero_sesion}: {$conflicto['entidad']->fecha->format('d/m/Y')} " .
+                "{$conflicto['entidad']->hora_inicio}-{$conflicto['entidad']->hora_fin}"
+            );
+            return;
+        }
 
         try {
             DB::transaction(function () {

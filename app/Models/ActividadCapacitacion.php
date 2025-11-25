@@ -31,6 +31,7 @@ class ActividadCapacitacion extends Model
         'hora_fin',
         'fecha_limite_inscripcion',
         'porcentaje_asistencia_minimo',
+        'requiere_evaluacion',
         'calificacion_minima_aprobacion',
         'otorga_certificado',
         'instructor_nombre',
@@ -58,6 +59,7 @@ class ActividadCapacitacion extends Model
         'aprobado_at' => 'datetime',
         'cancelado_at' => 'datetime',
         'otorga_certificado' => 'boolean',
+        'requiere_evaluacion' => 'boolean',
         'porcentaje_asistencia_minimo' => 'decimal:2',
         'calificacion_minima_aprobacion' => 'decimal:2',
     ];

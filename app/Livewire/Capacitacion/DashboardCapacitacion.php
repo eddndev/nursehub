@@ -8,6 +8,10 @@ use App\Models\ActividadCapacitacion;
 use App\Models\Certificacion;
 use App\Models\Enfermero;
 use App\Models\InscripcionCapacitacion;
+use App\Models\User;
+use App\Notifications\InscripcionAutoservicioNotification;
+use App\Notifications\InscripcionConfirmadaNotification;
+use App\Services\ConflictoHorarioService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -37,6 +41,10 @@ class DashboardCapacitacion extends Component
     // Datos del formulario
     public $observacionesInscripcion = '';
 
+    // Alertas de conflictos
+    public $conflictosDetectados = [];
+    public $confirmarConConflictos = false;
+
     #[Computed]
     public function enfermeroActual()
     {
@@ -62,7 +70,7 @@ class DashboardCapacitacion extends Component
 
         $query = ActividadCapacitacion::with(['area', 'sesiones'])
             ->whereNotIn('id', $inscritosIds)
-            ->where('estado', EstadoActividad::PUBLICADA->value)
+            ->where('estado', EstadoActividad::INSCRIPCIONES_ABIERTAS->value)
             ->where('fecha_inicio', '>', now());
 
         // Aplicar filtros
@@ -103,7 +111,7 @@ class DashboardCapacitacion extends Component
             });
         } elseif ($this->filtroEstadoActividad === 'finalizada') {
             $query->whereHas('actividad', function ($q) {
-                $q->where('estado', EstadoActividad::FINALIZADA->value);
+                $q->where('estado', EstadoActividad::COMPLETADA->value);
             });
         }
 
@@ -192,7 +200,7 @@ class DashboardCapacitacion extends Component
             $q->where('enfermero_id', $enfermero->id);
         })->sum('horas_certificadas');
 
-        $actividadesDisponibles = ActividadCapacitacion::where('estado', EstadoActividad::PUBLICADA->value)
+        $actividadesDisponibles = ActividadCapacitacion::where('estado', EstadoActividad::INSCRIPCIONES_ABIERTAS->value)
             ->where('fecha_inicio', '>', now())
             ->whereDoesntHave('inscripciones', function ($q) use ($enfermero) {
                 $q->where('enfermero_id', $enfermero->id)
@@ -227,7 +235,18 @@ class DashboardCapacitacion extends Component
     public function abrirModalInscribirse($actividadId)
     {
         $this->actividadId = $actividadId;
-        $this->reset(['observacionesInscripcion']);
+        $this->reset(['observacionesInscripcion', 'conflictosDetectados', 'confirmarConConflictos']);
+
+        // Verificar conflictos con turnos
+        $enfermero = $this->enfermeroActual;
+        if ($enfermero) {
+            $conflictoService = app(ConflictoHorarioService::class);
+            $this->conflictosDetectados = $conflictoService->verificarConflictoParaInscripcion(
+                $enfermero->id,
+                $actividadId
+            );
+        }
+
         $this->modalInscribirse = true;
     }
 
@@ -237,12 +256,18 @@ class DashboardCapacitacion extends Component
             'observacionesInscripcion' => 'nullable|string|max:500',
         ]);
 
+        // Si hay conflictos y no ha confirmado, mostrar advertencia
+        if (!empty($this->conflictosDetectados) && !$this->confirmarConConflictos) {
+            $this->dispatch('warning', mensaje: 'Se detectaron conflictos de horario con tus turnos. Revisa los detalles y confirma si deseas continuar.');
+            return;
+        }
+
         try {
             $enfermero = $this->enfermeroActual;
             $actividad = ActividadCapacitacion::findOrFail($this->actividadId);
 
             // Validar que está publicada
-            if ($actividad->estado !== EstadoActividad::PUBLICADA) {
+            if ($actividad->estado !== EstadoActividad::INSCRIPCIONES_ABIERTAS) {
                 $this->dispatch('error', mensaje: 'Esta actividad no está disponible para inscripciones');
                 return;
             }
@@ -264,19 +289,44 @@ class DashboardCapacitacion extends Component
                 return;
             }
 
-            DB::transaction(function () use ($enfermero) {
-                InscripcionCapacitacion::create([
+            // Agregar nota de conflictos si existen
+            $observaciones = $this->observacionesInscripcion;
+            if (!empty($this->conflictosDetectados)) {
+                $conflictosTexto = collect($this->conflictosDetectados)
+                    ->map(fn($c) => $c['mensaje'])
+                    ->implode('; ');
+                $observaciones .= "\n\n⚠️ CONFLICTOS DETECTADOS: " . $conflictosTexto;
+            }
+
+            $inscripcion = null;
+            DB::transaction(function () use ($enfermero, $observaciones, &$inscripcion) {
+                $inscripcion = InscripcionCapacitacion::create([
                     'actividad_id' => $this->actividadId,
                     'enfermero_id' => $enfermero->id,
                     'tipo' => 'voluntaria',
                     'estado' => EstadoInscripcion::PENDIENTE->value,
                     'inscrito_por' => auth()->id(),
-                    'observaciones' => $this->observacionesInscripcion,
+                    'observaciones_finales' => $observaciones,
                 ]);
             });
 
+            // Enviar notificación de confirmación al enfermero
+            if ($inscripcion) {
+                $inscripcion->load('actividad', 'enfermero.user');
+                $enfermero->user->notify(new InscripcionConfirmadaNotification($inscripcion));
+
+                // Notificar a los coordinadores de capacitación sobre la inscripción por autoservicio
+                $this->notificarCoordinadores($inscripcion);
+            }
+
             $this->modalInscribirse = false;
-            $this->dispatch('inscripcion-exitosa', mensaje: 'Te has inscrito exitosamente. Tu inscripción está pendiente de aprobación.');
+
+            if (!empty($this->conflictosDetectados)) {
+                $this->dispatch('inscripcion-exitosa', mensaje: 'Te has inscrito exitosamente. Tu inscripción está pendiente de aprobación. ⚠️ Recuerda coordinar los conflictos de horario con tu Jefe de Piso.');
+            } else {
+                $this->dispatch('inscripcion-exitosa', mensaje: 'Te has inscrito exitosamente. Tu inscripción está pendiente de aprobación.');
+            }
+
             $this->resetPage();
         } catch (\Exception $e) {
             $this->dispatch('error', mensaje: 'Error al inscribirse: ' . $e->getMessage());
@@ -319,6 +369,18 @@ class DashboardCapacitacion extends Component
             $this->resetPage();
         } catch (\Exception $e) {
             $this->dispatch('error', mensaje: 'Error al cancelar: ' . $e->getMessage());
+        }
+    }
+
+    protected function notificarCoordinadores(InscripcionCapacitacion $inscripcion)
+    {
+        // Buscar usuarios con rol de coordinador de capacitación
+        $coordinadores = User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['coordinador_capacitacion', 'admin', 'jefe_enfermeria']);
+        })->get();
+
+        foreach ($coordinadores as $coordinador) {
+            $coordinador->notify(new InscripcionAutoservicioNotification($inscripcion));
         }
     }
 

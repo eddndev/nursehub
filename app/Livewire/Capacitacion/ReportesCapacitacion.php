@@ -5,15 +5,19 @@ namespace App\Livewire\Capacitacion;
 use App\Enums\EstadoActividad;
 use App\Enums\EstadoInscripcion;
 use App\Enums\TipoActividad;
+use App\Exports\ReporteCapacitacionExport;
 use App\Models\ActividadCapacitacion;
 use App\Models\Area;
 use App\Models\Certificacion;
 use App\Models\Enfermero;
 use App\Models\InscripcionCapacitacion;
+use App\Services\ReportePDFService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportesCapacitacion extends Component
 {
@@ -36,19 +40,28 @@ class ReportesCapacitacion extends Component
     #[Computed]
     public function estadisticasGenerales()
     {
+        $cacheKey = "reporte_general_{$this->fechaInicio}_{$this->fechaFin}_{$this->areaSeleccionada}";
+
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () {
+            return $this->calcularEstadisticasGenerales();
+        });
+    }
+
+    protected function calcularEstadisticasGenerales()
+    {
         $fechaInicio = Carbon::parse($this->fechaInicio)->startOfDay();
         $fechaFin = Carbon::parse($this->fechaFin)->endOfDay();
 
         // Actividades
         $totalActividades = ActividadCapacitacion::whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])->count();
         $actividadesPublicadas = ActividadCapacitacion::whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
-            ->where('estado', EstadoActividad::PUBLICADA->value)
+            ->where('estado', EstadoActividad::INSCRIPCIONES_ABIERTAS->value)
             ->count();
         $actividadesEnCurso = ActividadCapacitacion::whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
             ->where('estado', EstadoActividad::EN_CURSO->value)
             ->count();
         $actividadesFinalizadas = ActividadCapacitacion::whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
-            ->where('estado', EstadoActividad::FINALIZADA->value)
+            ->where('estado', EstadoActividad::COMPLETADA->value)
             ->count();
 
         // Inscripciones
@@ -271,6 +284,7 @@ class ReportesCapacitacion extends Component
 
     public function limpiarFiltros()
     {
+        $this->limpiarCache();
         $this->fechaInicio = now()->startOfMonth()->format('Y-m-d');
         $this->fechaFin = now()->endOfMonth()->format('Y-m-d');
         $this->areaSeleccionada = '';
@@ -278,16 +292,47 @@ class ReportesCapacitacion extends Component
         $this->tipoActividadFiltro = '';
     }
 
+    public function limpiarCache()
+    {
+        $cacheKey = "reporte_general_{$this->fechaInicio}_{$this->fechaFin}_{$this->areaSeleccionada}";
+        Cache::forget($cacheKey);
+        $this->dispatch('success', mensaje: 'Cache limpiado. Los datos se recalcularán.');
+    }
+
+    public function actualizarDatos()
+    {
+        $this->limpiarCache();
+    }
+
     public function exportarExcel()
     {
-        // TODO: Implementar exportación a Excel
-        $this->dispatch('info', mensaje: 'Funcionalidad de exportación a Excel próximamente');
+        $tipoExport = match ($this->tipoReporte) {
+            'por-area' => 'por_area',
+            'por-actividad' => 'por_actividad',
+            'certificaciones' => 'certificaciones',
+            default => 'general',
+        };
+
+        $areaId = $this->areaSeleccionada ? (int) $this->areaSeleccionada : null;
+
+        $filename = 'reporte-capacitacion-' . $tipoExport . '-' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(
+            new ReporteCapacitacionExport($tipoExport, $this->fechaInicio, $this->fechaFin, $areaId),
+            $filename
+        );
     }
 
     public function exportarPDF()
     {
-        // TODO: Implementar exportación a PDF
-        $this->dispatch('info', mensaje: 'Funcionalidad de exportación a PDF próximamente');
+        $areaId = $this->areaSeleccionada ? (int) $this->areaSeleccionada : null;
+        $pdfService = new ReportePDFService($this->fechaInicio, $this->fechaFin, $areaId);
+
+        return match ($this->tipoReporte) {
+            'por-area' => $pdfService->generarReportePorArea(),
+            'certificaciones' => $pdfService->generarReporteCertificaciones(),
+            default => $pdfService->generarReporteGeneral(),
+        };
     }
 
     public function render()

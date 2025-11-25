@@ -35,6 +35,8 @@ class InscripcionCapacitacion extends Model
         'motivo_cancelacion',
         'calificacion_final',
         'porcentaje_asistencia',
+        'calificacion_evaluacion',
+        'retroalimentacion',
         'aprobado',
         'observaciones_finales',
     ];
@@ -48,6 +50,7 @@ class InscripcionCapacitacion extends Model
         'cancelado_at' => 'datetime',
         'calificacion_final' => 'decimal:2',
         'porcentaje_asistencia' => 'decimal:2',
+        'calificacion_evaluacion' => 'decimal:2',
         'aprobado' => 'boolean',
     ];
 
@@ -184,15 +187,34 @@ class InscripcionCapacitacion extends Model
 
     public function cumpleCalificacionMinima(): bool
     {
+        // Si la actividad no requiere evaluación, automáticamente cumple
+        if (!$this->actividad->requiere_evaluacion) {
+            return true;
+        }
+
+        // Si no tiene calificación mínima configurada, cumple
         if ($this->actividad->calificacion_minima_aprobacion === null) {
             return true;
         }
 
-        if ($this->calificacion_final === null) {
+        // Usar calificacion_evaluacion si está disponible, sino calificacion_final
+        $calificacion = $this->calificacion_evaluacion ?? $this->calificacion_final;
+
+        if ($calificacion === null) {
             return false;
         }
 
-        return $this->calificacion_final >= $this->actividad->calificacion_minima_aprobacion;
+        return $calificacion >= $this->actividad->calificacion_minima_aprobacion;
+    }
+
+    public function requiereEvaluacion(): bool
+    {
+        return $this->actividad->requiere_evaluacion;
+    }
+
+    public function getCalificacionObtenidaAttribute(): ?float
+    {
+        return $this->calificacion_evaluacion ?? $this->calificacion_final;
     }
 
     public function puedeObtenerCertificado(): bool

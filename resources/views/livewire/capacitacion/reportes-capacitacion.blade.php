@@ -7,7 +7,7 @@
 
     {{-- Filtros de Fechas y Acciones --}}
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
                 <input type="date" wire:model.live="fechaInicio" class="w-full px-3 py-2 border border-gray-300 rounded-md">
@@ -16,17 +16,53 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
                 <input type="date" wire:model.live="fechaFin" class="w-full px-3 py-2 border border-gray-300 rounded-md">
             </div>
-            <div class="md:col-span-3 flex items-end gap-2">
-                <button wire:click="limpiarFiltros" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                    Limpiar
+            <div class="md:col-span-4 flex items-end gap-2">
+                <button wire:click="limpiarFiltros" wire:loading.attr="disabled" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="limpiarFiltros">Limpiar</span>
+                    <span wire:loading wire:target="limpiarFiltros">Limpiando...</span>
                 </button>
-                <button wire:click="exportarExcel" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
-                    Exportar Excel
+                <button wire:click="actualizarDatos" wire:loading.attr="disabled" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="actualizarDatos">Actualizar</span>
+                    <span wire:loading wire:target="actualizarDatos">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Actualizando...
+                    </span>
                 </button>
-                <button wire:click="exportarPDF" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
-                    Exportar PDF
+                <button wire:click="exportarExcel" wire:loading.attr="disabled" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="exportarExcel">Exportar Excel</span>
+                    <span wire:loading wire:target="exportarExcel">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generando...
+                    </span>
+                </button>
+                <button wire:click="exportarPDF" wire:loading.attr="disabled" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="exportarPDF">Exportar PDF</span>
+                    <span wire:loading wire:target="exportarPDF">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generando...
+                    </span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    {{-- Loading Overlay Global --}}
+    <div wire:loading.flex wire:target="cambiarTipoReporte, fechaInicio, fechaFin" class="fixed inset-0 bg-gray-900/50 z-50 items-center justify-center">
+        <div class="bg-white rounded-lg p-6 shadow-xl flex items-center gap-4">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-gray-700 font-medium">Cargando datos...</span>
         </div>
     </div>
 
@@ -139,6 +175,25 @@
                 <div class="text-2xl font-bold text-purple-600">{{ number_format($this->estadisticasGenerales['promedioAsistencia'] ?? 0, 1) }}%</div>
                 <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div class="bg-purple-600 h-2 rounded-full" style="width: {{ $this->estadisticasGenerales['promedioAsistencia'] ?? 0 }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Gráficos Visuales --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {{-- Gráfico de Pastel - Distribución por Estado de Inscripciones --}}
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Distribución de Inscripciones</h3>
+                <div class="h-64">
+                    <canvas id="chartDistribucionInscripciones"></canvas>
+                </div>
+            </div>
+
+            {{-- Gráfico de Barras - Actividades por Tipo --}}
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Actividades por Tipo</h3>
+                <div class="h-64">
+                    <canvas id="chartActividadesPorTipo"></canvas>
                 </div>
             </div>
         </div>
@@ -334,11 +389,183 @@
         </div>
     @endif
 
-    {{-- Scripts para notificaciones --}}
+    {{-- Scripts para notificaciones y gráficos --}}
     @script
     <script>
+        // Variables para mantener referencias a los gráficos
+        let chartDistribucion = null;
+        let chartActividades = null;
+
+        // Función para inicializar gráficos
+        function initCharts() {
+            // Solo inicializar si estamos en la vista general
+            const canvasDistribucion = document.getElementById('chartDistribucionInscripciones');
+            const canvasActividades = document.getElementById('chartActividadesPorTipo');
+
+            if (!canvasDistribucion || !canvasActividades || !window.Chart) return;
+
+            // Destruir gráficos existentes si hay
+            if (chartDistribucion) {
+                chartDistribucion.destroy();
+                chartDistribucion = null;
+            }
+            if (chartActividades) {
+                chartActividades.destroy();
+                chartActividades = null;
+            }
+
+            // Datos desde el componente Livewire
+            const estadisticas = @json($this->estadisticasGenerales);
+            const reporteTipo = @json($this->reportePorTipoActividad);
+
+            // Gráfico de Pastel - Distribución de Inscripciones
+            chartDistribucion = new Chart(canvasDistribucion, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Aprobadas', 'Pendientes', 'Reprobadas'],
+                    datasets: [{
+                        data: [
+                            estadisticas.inscripcionesAprobadas || 0,
+                            estadisticas.inscripcionesPendientes || 0,
+                            estadisticas.inscripcionesReprobadas || 0
+                        ],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(234, 179, 8, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(234, 179, 8, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const value = context.raw;
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Barras - Actividades por Tipo
+            const tiposLabels = reporteTipo.map(r => r.tipo);
+            const actividadesData = reporteTipo.map(r => r.total_actividades);
+            const inscripcionesData = reporteTipo.map(r => r.total_inscripciones);
+
+            chartActividades = new Chart(canvasActividades, {
+                type: 'bar',
+                data: {
+                    labels: tiposLabels,
+                    datasets: [
+                        {
+                            label: 'Actividades',
+                            data: actividadesData,
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Inscripciones',
+                            data: inscripcionesData,
+                            backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inicializar gráficos cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initCharts, 100);
+        });
+
+        // Reinicializar gráficos cuando Livewire actualice el componente
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            setTimeout(initCharts, 100);
+        });
+
+        // Eventos de notificaciones
         $wire.on('info', (event) => {
-            alert(event.mensaje);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Información',
+                    text: event.mensaje,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert(event.mensaje);
+            }
+        });
+
+        $wire.on('success', (event) => {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: event.mensaje,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert(event.mensaje);
+            }
+        });
+
+        $wire.on('error', (event) => {
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: event.mensaje
+                });
+            } else {
+                alert('Error: ' + event.mensaje);
+            }
         });
     </script>
     @endscript

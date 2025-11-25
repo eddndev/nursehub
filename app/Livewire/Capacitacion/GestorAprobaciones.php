@@ -3,9 +3,12 @@
 namespace App\Livewire\Capacitacion;
 
 use App\Enums\EstadoInscripcion;
+use App\Jobs\GenerarCertificacionesMasivas;
 use App\Models\ActividadCapacitacion;
 use App\Models\Certificacion;
 use App\Models\InscripcionCapacitacion;
+use App\Notifications\CertificacionGeneradaNotification;
+use App\Notifications\InscripcionAprobadaNotification;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -39,6 +42,10 @@ class GestorAprobaciones extends Component
     // Configuración de certificación
     public $mesesVigencia = 12;
     public $competenciasDesarrolladas = '';
+
+    // Campos de evaluación
+    public $calificacionEvaluacion = null;
+    public $retroalimentacion = '';
 
     public function mount($actividadId)
     {
@@ -140,41 +147,77 @@ class GestorAprobaciones extends Component
     public function abrirModalAprobar($inscripcionId)
     {
         $this->inscripcionId = $inscripcionId;
-        $this->reset(['observacionesAprobacion', 'mesesVigencia', 'competenciasDesarrolladas']);
+        $this->reset(['observacionesAprobacion', 'mesesVigencia', 'competenciasDesarrolladas', 'calificacionEvaluacion', 'retroalimentacion']);
         $this->mesesVigencia = 12;
+        $this->calificacionEvaluacion = null;
         $this->modalAprobar = true;
     }
 
     public function aprobarInscripcion()
     {
-        $this->validate([
+        $inscripcion = InscripcionCapacitacion::with('actividad')->findOrFail($this->inscripcionId);
+
+        // Validaciones dinámicas según si la actividad requiere evaluación
+        $rules = [
             'observacionesAprobacion' => 'nullable|string|max:500',
             'mesesVigencia' => 'required|integer|min:1|max:120',
             'competenciasDesarrolladas' => 'nullable|string|max:1000',
-        ]);
+            'retroalimentacion' => 'nullable|string|max:1000',
+        ];
+
+        if ($inscripcion->actividad->requiere_evaluacion) {
+            $rules['calificacionEvaluacion'] = 'required|numeric|min:0|max:100';
+        } else {
+            $rules['calificacionEvaluacion'] = 'nullable|numeric|min:0|max:100';
+        }
+
+        $this->validate($rules);
 
         try {
-            $inscripcion = InscripcionCapacitacion::findOrFail($this->inscripcionId);
-
             // Validar que esté pendiente
             if ($inscripcion->estado !== EstadoInscripcion::PENDIENTE) {
                 $this->dispatch('error', mensaje: 'Solo se pueden aprobar inscripciones pendientes');
                 return;
             }
 
-            // Validar que cumpla el criterio
+            // Validar que cumpla el criterio de asistencia
             if (!$inscripcion->cumpleAsistenciaMinima()) {
                 $this->dispatch('error', mensaje: 'Esta inscripción no cumple con el porcentaje mínimo de asistencia');
                 return;
             }
 
-            DB::transaction(function () use ($inscripcion) {
+            // Validar calificación mínima si la actividad requiere evaluación
+            if ($inscripcion->actividad->requiere_evaluacion && $inscripcion->actividad->calificacion_minima_aprobacion !== null) {
+                if ($this->calificacionEvaluacion < $inscripcion->actividad->calificacion_minima_aprobacion) {
+                    $this->dispatch('error', mensaje: 'La calificación (' . $this->calificacionEvaluacion . ') es menor a la mínima aprobatoria (' . $inscripcion->actividad->calificacion_minima_aprobacion . ')');
+                    return;
+                }
+            }
+
+            $certificacion = null;
+            DB::transaction(function () use ($inscripcion, &$certificacion) {
+                // Guardar calificación y retroalimentación
+                $inscripcion->update([
+                    'calificacion_evaluacion' => $this->calificacionEvaluacion,
+                    'retroalimentacion' => $this->retroalimentacion,
+                    'calificacion_final' => $this->calificacionEvaluacion ?? $inscripcion->calificacion_final,
+                ]);
+
                 // Aprobar inscripción
                 $inscripcion->aprobar(auth()->id(), $this->observacionesAprobacion ?: 'Aprobada por cumplir criterios');
 
                 // Generar certificación
-                $this->generarCertificacion($inscripcion);
+                $certificacion = $this->generarCertificacion($inscripcion);
             });
+
+            // Enviar notificaciones fuera de la transacción
+            $inscripcion->load('enfermero.user', 'actividad');
+            $inscripcion->enfermero->user->notify(new InscripcionAprobadaNotification($inscripcion));
+
+            if ($certificacion) {
+                $certificacion->load('inscripcion.actividad', 'inscripcion.enfermero.user');
+                $inscripcion->enfermero->user->notify(new CertificacionGeneradaNotification($certificacion));
+            }
 
             $this->modalAprobar = false;
             $this->dispatch('inscripcion-aprobada', mensaje: 'Inscripción aprobada y certificación generada exitosamente');
@@ -204,11 +247,24 @@ class GestorAprobaciones extends Component
             'competenciasDesarrolladas' => 'nullable|string|max:1000',
         ]);
 
+        $totalSeleccionadas = count($this->inscripcionesSeleccionadas);
+
+        // Umbral para usar el job en segundo plano (más de 10 inscripciones)
+        $umbralBackgroundJob = 10;
+
         try {
+            // Si hay muchas inscripciones, usar el job en segundo plano
+            if ($totalSeleccionadas > $umbralBackgroundJob) {
+                $this->aprobarMasivoEnSegundoPlano();
+                return;
+            }
+
+            // Proceso síncrono para pocas inscripciones
             $aprobadas = 0;
             $errores = 0;
+            $inscripcionesAprobadas = [];
 
-            DB::transaction(function () use (&$aprobadas, &$errores) {
+            DB::transaction(function () use (&$aprobadas, &$errores, &$inscripcionesAprobadas) {
                 foreach ($this->inscripcionesSeleccionadas as $inscripcionId) {
                     $inscripcion = InscripcionCapacitacion::find($inscripcionId);
 
@@ -226,11 +282,30 @@ class GestorAprobaciones extends Component
                     $inscripcion->aprobar(auth()->id(), $this->observacionesAprobacion ?: 'Aprobada masivamente');
 
                     // Generar certificación
-                    $this->generarCertificacion($inscripcion);
+                    $certificacion = $this->generarCertificacion($inscripcion);
+
+                    $inscripcionesAprobadas[] = [
+                        'inscripcion' => $inscripcion,
+                        'certificacion' => $certificacion,
+                    ];
 
                     $aprobadas++;
                 }
             });
+
+            // Enviar notificaciones fuera de la transacción
+            foreach ($inscripcionesAprobadas as $data) {
+                $inscripcion = $data['inscripcion'];
+                $certificacion = $data['certificacion'];
+
+                $inscripcion->load('enfermero.user', 'actividad');
+                $inscripcion->enfermero->user->notify(new InscripcionAprobadaNotification($inscripcion));
+
+                if ($certificacion) {
+                    $certificacion->load('inscripcion.actividad', 'inscripcion.enfermero.user');
+                    $inscripcion->enfermero->user->notify(new CertificacionGeneradaNotification($certificacion));
+                }
+            }
 
             $this->inscripcionesSeleccionadas = [];
             $this->modalAprobarMasivo = false;
@@ -251,7 +326,50 @@ class GestorAprobaciones extends Component
         }
     }
 
-    protected function generarCertificacion(InscripcionCapacitacion $inscripcion)
+    protected function aprobarMasivoEnSegundoPlano(): void
+    {
+        // Filtrar solo las inscripciones que cumplen criterios
+        $inscripcionesValidas = [];
+
+        foreach ($this->inscripcionesSeleccionadas as $inscripcionId) {
+            $inscripcion = InscripcionCapacitacion::find($inscripcionId);
+
+            if (!$inscripcion || $inscripcion->estado !== EstadoInscripcion::PENDIENTE) {
+                continue;
+            }
+
+            if (!$inscripcion->cumpleAsistenciaMinima()) {
+                continue;
+            }
+
+            // Aprobar la inscripción de forma síncrona (rápido)
+            $inscripcion->aprobar(auth()->id(), $this->observacionesAprobacion ?: 'Aprobada masivamente');
+            $inscripcionesValidas[] = $inscripcionId;
+        }
+
+        if (empty($inscripcionesValidas)) {
+            $this->dispatch('error', mensaje: 'No hay inscripciones válidas para aprobar');
+            return;
+        }
+
+        // Despachar el job para generar certificaciones en segundo plano
+        GenerarCertificacionesMasivas::dispatch(
+            $inscripcionesValidas,
+            auth()->id(),
+            $this->mesesVigencia,
+            $this->competenciasDesarrolladas ?: null,
+            $this->observacionesAprobacion ?: null
+        );
+
+        $totalValidas = count($inscripcionesValidas);
+        $this->inscripcionesSeleccionadas = [];
+        $this->modalAprobarMasivo = false;
+
+        $this->dispatch('aprobacion-masiva-en-proceso', mensaje: "{$totalValidas} inscripciones aprobadas. Las certificaciones se generarán en segundo plano.");
+        $this->resetPage();
+    }
+
+    protected function generarCertificacion(InscripcionCapacitacion $inscripcion): Certificacion
     {
         // Generar número de certificado único
         $numeroCertificado = Certificacion::generarNumeroCertificado();
@@ -266,15 +384,15 @@ class GestorAprobaciones extends Component
             ? $fechaEmision->copy()->addMonths($this->mesesVigencia)
             : null;
 
-        // Crear certificación
-        Certificacion::create([
+        // Crear certificación (usar calificacion_evaluacion si está disponible)
+        return Certificacion::create([
             'inscripcion_id' => $inscripcion->id,
             'numero_certificado' => $numeroCertificado,
             'fecha_emision' => $fechaEmision,
             'fecha_vigencia_inicio' => $fechaVigenciaInicio,
             'fecha_vigencia_fin' => $fechaVigenciaFin,
             'horas_certificadas' => $inscripcion->actividad->duracion_horas,
-            'calificacion_obtenida' => $inscripcion->calificacion_final,
+            'calificacion_obtenida' => $inscripcion->calificacion_evaluacion ?? $inscripcion->calificacion_final,
             'porcentaje_asistencia' => $inscripcion->porcentaje_asistencia,
             'competencias_desarrolladas' => $this->competenciasDesarrolladas,
             'observaciones' => $this->observacionesAprobacion,

@@ -237,24 +237,39 @@ test('inscripcion validates asistencia minima correctly', function () {
 
 test('inscripcion validates calificacion minima correctly', function () {
     $actividad = ActividadCapacitacion::factory()->create([
+        'requiere_evaluacion' => true,
         'calificacion_minima_aprobacion' => 75.00,
     ]);
 
     $inscripcion = InscripcionCapacitacion::factory()->create([
         'actividad_id' => $actividad->id,
-        'calificacion_final' => 85.00,
+        'calificacion_evaluacion' => 85.00,
     ]);
 
     expect($inscripcion->cumpleCalificacionMinima())->toBeTrue();
 
-    $inscripcion->update(['calificacion_final' => 70.00]);
+    $inscripcion->update(['calificacion_evaluacion' => 70.00]);
     expect($inscripcion->cumpleCalificacionMinima())->toBeFalse();
+
+    // Verificar que actividades sin requiere_evaluacion siempre cumplen
+    $actividadSinEvaluacion = ActividadCapacitacion::factory()->create([
+        'requiere_evaluacion' => false,
+        'calificacion_minima_aprobacion' => 75.00,
+    ]);
+
+    $inscripcionSinRequisito = InscripcionCapacitacion::factory()->create([
+        'actividad_id' => $actividadSinEvaluacion->id,
+        'calificacion_evaluacion' => null,
+    ]);
+
+    expect($inscripcionSinRequisito->cumpleCalificacionMinima())->toBeTrue();
 });
 
 test('inscripcion puedeObtenerCertificado validates all requirements', function () {
     $actividad = ActividadCapacitacion::factory()->create([
         'otorga_certificado' => true,
         'porcentaje_asistencia_minimo' => 80.00,
+        'requiere_evaluacion' => true,
         'calificacion_minima_aprobacion' => 75.00,
     ]);
 
@@ -262,7 +277,7 @@ test('inscripcion puedeObtenerCertificado validates all requirements', function 
         'actividad_id' => $actividad->id,
         'estado' => EstadoInscripcion::APROBADA,
         'porcentaje_asistencia' => 85.00,
-        'calificacion_final' => 80.00,
+        'calificacion_evaluacion' => 80.00,
         'aprobado' => true,
     ]);
 
